@@ -1,0 +1,6 @@
+.stack-work/
+opc.cabal
+*~
+
+*.c
+*.exe

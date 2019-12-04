@@ -1,0 +1,5 @@
+f { ++++ ++++ [> ++++ ++++ ++++ < -] > + : + : + # Comment
+: } # Comm
+m { f ;. ;. ;. } # Comment
+# Cmm
+m    # Comm
