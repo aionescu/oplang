@@ -4,7 +4,7 @@ The compiler for `OpLang`, a stack-based esoteric programming language inspired 
 
 ## OpLang Basics
 
-In short, OpLang is an extended version of Brainfuck that supports defining custom operators, which communicate through a stack.
+In short, OpLang (**Op**erator **Lang**uage) is an extended version of Brainfuck that supports defining custom operators, which communicate through a stack.
 
 The memory model of OpLang is similar to that of Brainfuck: There is a "memory tape", consisting of an array of cells, and a "cursor" that keeps track of a cell (the "current cell"), initially set to the first cell in the tape.
 The language's primitive instructions, called "intrinsics", modify either the cursor, or the current cell.
