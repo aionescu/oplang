@@ -13,10 +13,9 @@ checkDefs defs = catMaybes $ go defined <$> defs
     defined = opDefName <$> defs
 
     go defs (OpDef name body) =
-      if checkCalls defs body then
-        Nothing
-      else
-        Just name
+      if checkCalls defs body
+      then Nothing
+      else Just name
 
 checkProgram :: Program -> Maybe String
 checkProgram (Program opDefs topLevel) = maybeify $ intercalate "\n" (msgify (checkDefs opDefs) ++ go topLevel)
@@ -28,10 +27,9 @@ checkProgram (Program opDefs topLevel) = maybeify $ intercalate "\n" (msgify (ch
     msgifySingle char = "Call to undefined operator in body of '" ++ [char] ++ "'."
 
     go ops =
-      if checkCalls (opDefName <$> opDefs) ops then
-        []
-      else
-        ["Call to undefined operator in toplevel."]
+      if checkCalls (opDefName <$> opDefs) ops
+      then []
+      else ["Call to undefined operator in toplevel."]
 
 check :: Program -> Either String Program
 check program =

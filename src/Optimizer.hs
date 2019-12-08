@@ -50,8 +50,8 @@ optimizeOnce = go False []
     go _ acc (Loop l : Loop _ : ops) = go True acc (Loop l : ops)
     go _ acc (Loop [Loop l] : ops) = go True acc (Loop l : ops)
     go _ acc (Loop l : ops) =
-      let (changed, l') = go False [] l in
-      go changed (Loop l' : acc) ops
+      let (changed, l') = go False [] l
+      in go changed (Loop l' : acc) ops
 
     go _ acc [Custom c] = (True, reverse (Tailcall c : acc))
     go changed acc (op : ops) = go changed (op : acc) ops
@@ -60,11 +60,11 @@ optimizeOnce = go False []
 optimizeN :: Int -> [Op] -> [Op]
 optimizeN 0 ops = ops
 optimizeN n ops =
-  let (changed, ops') = optimizeOnce ops in
-  if changed then
-    optimizeN (n - 1) ops'
-  else
-    ops'
+  let (changed, ops') = optimizeOnce ops
+  in
+    if changed
+    then optimizeN (n - 1) ops'
+    else ops'
 
 removeSet0 :: [Op] -> [Op]
 removeSet0 (Set 0 : ops) = ops

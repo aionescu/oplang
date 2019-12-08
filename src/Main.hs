@@ -25,10 +25,11 @@ pipeline src =
 
 binaryFile :: String -> String
 binaryFile file =
-  let noExt = dropExtension file in
-  case os of
-    "mingw32" -> noExt ++ ".exe"
-    _ -> noExt
+  let noExt = dropExtension file
+  in
+    case os of
+      "mingw32" -> noExt ++ ".exe"
+      _ -> noExt
 
 cFile :: String -> String
 cFile file = dropExtension file ++ ".c"
@@ -37,8 +38,10 @@ compileC :: String -> String -> IO ()
 compileC file code = do
   let cPath = cFile file
   writeFile cPath code
+  
   system ("cc -o " ++ binaryFile file ++ " " ++ cPath)
   removeFile cPath
+  
   pure ()
 
 main :: IO ()
