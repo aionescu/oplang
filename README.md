@@ -1,4 +1,4 @@
-# opc
+# oplangc
 
 The compiler for `OpLang`, a stack-based esoteric programming language inspired by [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck).
 
@@ -44,6 +44,8 @@ The above program defines a custom operator `a` that pops a value from the stack
 The program's toplevel (i.e. `main()` function) initializes the first cell to 0, pushes it to the stack, then calls `a` 3 times, then pops the value from the stack and prints it.
 
 For more sample programs, see the [Samples](Samples/) folder.
+
+The recommended file extension for OpLang programs is `*.op`.
 
 ## Compiler Internals
 
