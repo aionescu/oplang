@@ -19,8 +19,8 @@ optimizeOnce = go False []
     go _ acc (Move 0 : ops) = go True acc ops
     go _ acc (Pop 0 : ops) = go True acc ops
 
-    go _ acc (Loop [Add (-1)] : ops) = go True acc (Set 0 : ops)
-    go _ acc (Loop [Add 1] : ops) = go True acc (Set 0 : ops)
+    go _ acc (Loop [Add (-1)] : ops) = go True acc (set0 : ops)
+    go _ acc (Loop [Add 1] : ops) = go True acc (set0 : ops)
 
     go _ acc (Set s : Add a : ops) = go True acc (Set (s + a) : ops)
     go _ acc (Add a : Add b : ops) = go True acc (Add (a + b) : ops)
@@ -44,7 +44,7 @@ optimizeOnce = go False []
             WithOffset o op' -> go True acc (WithOffset (m + o) op' : ops)
             _ -> go True acc (WithOffset m op : ops)
 
-    go _ acc (Set 0 : Loop _ : ops) = go True acc (Set 0 : ops)
+    go _ acc (Set 0 : Loop _ : ops) = go True acc (set0 : ops)
     go _ acc (Loop l : Loop _ : ops) = go True acc (Loop l : ops)
     go _ acc (Loop [Loop l] : ops) = go True acc (Loop l : ops)
     go _ acc (Loop l : ops) =
@@ -69,7 +69,7 @@ removeSet0 (Set 0 : ops) = ops
 removeSet0 ops = ops
 
 optimizeOps :: [Op] -> [Op]
-optimizeOps ops = removeSet0 $ optimizeN maxPasses (Set 0 : ops)
+optimizeOps ops = removeSet0 $ optimizeN maxPasses (set0 : ops)
 
 optimizeDef :: Def -> Def
 optimizeDef (Def name ops) = Def name (optimizeOps ops)

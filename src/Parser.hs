@@ -38,13 +38,13 @@ reserved = intrinsics ++ "[]{}# \t\r\n"
 intrinsic :: Parser Op
 intrinsic = go <$> oneOf intrinsics
   where
-    go '+' = Add 1
-    go '-' = Add (-1)
-    go '<' = Move (-1)
-    go '>' = Move 1
+    go '+' = incr
+    go '-' = decr
+    go '<' = movl
+    go '>' = movr
     go ',' = Read
     go '.' = Write
-    go ';' = Pop 1
+    go ';' = pop
     go ':' = Push
     go _ = error "Impossible intrinsic op in parser."
 
