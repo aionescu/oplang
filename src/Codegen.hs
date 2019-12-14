@@ -1,7 +1,6 @@
-module Codegen(compile) where
+module Codegen(codegen) where
 
-import Data.Char
-import Data.List
+import Data.Char(ord)
 import Numeric(showHex)
 
 import Ast
@@ -20,11 +19,11 @@ allocTape = "char b[T],*t=b;memset(b,0,T);"
 mainPrologue :: CCode
 mainPrologue = "int main(){" ++ allocTape
 
-compileProto :: OpDef -> CCode
-compileProto (OpDef name _) = "void " ++ customName name ++ "();"
+compileProto :: Def -> CCode
+compileProto (Def name _) = "void " ++ customName name ++ "();"
 
-compileDef :: OpDef -> CCode
-compileDef (OpDef name body) = "void " ++ customName name ++ "(){" ++ allocTape ++ compileOps body ++ "}"
+compileDef :: Def -> CCode
+compileDef (Def name body) = "void " ++ customName name ++ "(){" ++ allocTape ++ compileOps body ++ "}"
 
 compileOps :: [Op] -> CCode
 compileOps ops = concat $ compileOp "t" <$> ops
@@ -45,11 +44,11 @@ compileOp tape (WithOffset off op) = compileOp ("(" ++ tape ++ "+" ++ show off +
 compileOp _ (Loop ops) = "while(*t){" ++ compileOps ops ++ "}"
 compileOp tape Read = "scanf(\"%c\"," ++ tape ++ ");"
 compileOp tape Write = "printf(\"%c\",*" ++ tape ++ ");"
-compileOp _ (Custom c) = customName c ++ "();"
-compileOp _ (Tailcall c) = customName c ++ "();"
+compileOp _ (OpCall c) = customName c ++ "();"
+compileOp _ (TailCall c) = customName c ++ "();"
 
 compileMain :: [Op] -> CCode
 compileMain ops = mainPrologue ++ compileOps ops ++ "}"
 
-compile :: Program -> CCode
-compile (Program defs ops) = programPrologue ++ concat (compileProto <$> defs) ++ concat (compileDef <$> defs) ++ compileMain ops
+codegen :: Program -> CCode
+codegen (Program defs ops) = programPrologue ++ concat (compileProto <$> defs) ++ concat (compileDef <$> defs) ++ compileMain ops

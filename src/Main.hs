@@ -9,11 +9,10 @@ import System.Info(os)
 import System.Process(system)
 import Text.Parsec(ParseError)
 
-import Ast
-import Parser
-import Checker
-import Optimizer
-import Codegen
+import Parser(parse)
+import Checker(check)
+import Optimizer(optimize)
+import Codegen(codegen)
 
 pipeline :: String -> Either String String
 pipeline src =
@@ -21,15 +20,15 @@ pipeline src =
   & parse
   >>= check
   <&> optimize
-  <&> compile
+  <&> codegen
 
 binaryFile :: String -> String
 binaryFile file =
-  let noExt = dropExtension file
-  in
-    case os of
-      "mingw32" -> noExt ++ ".exe"
-      _ -> noExt
+  case os of
+    "mingw32" -> noExt ++ ".exe"
+    _ -> noExt
+  where
+    noExt = dropExtension file
 
 cFile :: String -> String
 cFile file = dropExtension file ++ ".c"

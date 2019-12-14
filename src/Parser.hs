@@ -1,8 +1,9 @@
-module Parser(Parser.parse) where
+module Parser(parse) where
 
+import Control.Applicative((<|>))
 import Control.Exception(assert)
-import Text.Parsec
-import Text.Parsec.Char
+import Text.Parsec(between, eof, many, manyTill, Parsec, runParser, skipMany, try)
+import Text.Parsec.Char(anyChar, char, endOfLine, noneOf, oneOf, space)
 
 import Ast
 
@@ -54,15 +55,15 @@ custom :: Parser Char
 custom = noneOf reserved
 
 op :: Parser Op
-op = intrinsic <|> loop <|> (Custom <$> custom)
+op = intrinsic <|> loop <|> (OpCall <$> custom)
 
-opDef :: Parser OpDef
+opDef :: Parser Def
 opDef = do
   name <- ws custom
   ws $ char '{'
   body <- many $ ws op
   char '}'
-  pure $ OpDef name body
+  pure $ Def name body
 
 program :: Parser Program
 program = do

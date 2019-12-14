@@ -1,8 +1,7 @@
 module Ast where
 
-import Data.Int
-import Data.List
-import Data.Word
+import Data.Int(Int8)
+import Data.Word(Word8)
 
 data Op
   = Add Int8
@@ -15,23 +14,14 @@ data Op
   | Write
   | WithOffset Int Op
   | Loop [Op]
-  | Custom Char
-  | Tailcall Char
-  deriving Show
+  | OpCall Char
+  | TailCall Char
+  deriving (Show, Eq)
 
-data OpDef =
-  OpDef { opDefName :: Char, opDefBody :: [Op] }
+data Def =
+  Def { defName :: Char, defBody :: [Op] }
   deriving Show
 
 data Program =
-  Program { programDefs :: [OpDef], programTopLevel :: [Op] }
+  Program { programDefs :: [Def], programTopLevel :: [Op] }
   deriving Show
-
-calledOps :: [Op] -> [Char]
-calledOps = nub . go
-  where
-    go (Custom c : rest) = c : calledOps rest
-    go (Tailcall c : rest) = c : calledOps rest
-    go (Loop l : rest) = calledOps l ++ calledOps rest
-    go (_ : rest) = calledOps rest
-    go [] = []

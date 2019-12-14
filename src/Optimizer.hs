@@ -1,7 +1,5 @@
 module Optimizer(optimize) where
 
-import Data.List
-
 import Ast
 
 maxPasses = 64
@@ -9,8 +7,8 @@ maxPasses = 64
 canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False
 canDoWithOffset (Loop _) = False
-canDoWithOffset (Custom _) = False
-canDoWithOffset (Tailcall _) = False
+canDoWithOffset (OpCall _) = False
+canDoWithOffset (TailCall _) = False
 canDoWithOffset _ = True
 
 optimizeOnce :: [Op] -> (Bool, [Op])
@@ -53,7 +51,7 @@ optimizeOnce = go False []
       let (changed, l') = go False [] l
       in go changed (Loop l' : acc) ops
 
-    go _ acc [Custom c] = (True, reverse (Tailcall c : acc))
+    go _ acc [OpCall c] = (True, reverse (TailCall c : acc))
     go changed acc (op : ops) = go changed (op : acc) ops
     go changed acc [] = (changed, reverse acc)
   
@@ -73,8 +71,8 @@ removeSet0 ops = ops
 optimizeOps :: [Op] -> [Op]
 optimizeOps ops = removeSet0 $ optimizeN maxPasses (Set 0 : ops)
 
-optimizeDef :: OpDef -> OpDef
-optimizeDef (OpDef name ops) = OpDef name (optimizeOps ops)
+optimizeDef :: Def -> Def
+optimizeDef (Def name ops) = Def name (optimizeOps ops)
 
 optimize :: Program -> Program
 optimize (Program defs mainOps) = Program (optimizeDef <$> defs) (optimizeOps mainOps)
