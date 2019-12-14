@@ -2,7 +2,7 @@ module Parser(parse) where
 
 import Control.Applicative((<|>))
 import Control.Exception(assert)
-import Text.Parsec(between, eof, many, manyTill, Parsec, runParser, skipMany, try)
+import Text.Parsec(between, choice, eof, many, manyTill, Parsec, runParser, skipMany, try)
 import Text.Parsec.Char(anyChar, char, endOfLine, noneOf, oneOf, space)
 
 import Ast
@@ -36,17 +36,16 @@ reserved :: String
 reserved = intrinsics ++ "[]{}# \t\r\n"
 
 intrinsic :: Parser Op
-intrinsic = go <$> oneOf intrinsics
+intrinsic = choice [incr', decr', movl', movr', read', write, pop', push]
   where
-    go '+' = incr
-    go '-' = decr
-    go '<' = movl
-    go '>' = movr
-    go ',' = Read
-    go '.' = Write
-    go ';' = pop
-    go ':' = Push
-    go _ = error "Impossible intrinsic op in parser."
+    incr' = incr <$ char '+'
+    decr' = decr <$ char '-'
+    movl' = movl <$ char '<'
+    movr' = movr <$ char '>'
+    read' = Read <$ char ','
+    write = Write <$ char '.'
+    pop' = pop <$ char ';'
+    push = Push <$ char ':'
 
 loop :: Parser Op
 loop = Loop <$> between (ws $ char '[') (char ']') (many $ ws op)
@@ -55,7 +54,7 @@ custom :: Parser Char
 custom = noneOf reserved
 
 op :: Parser Op
-op = intrinsic <|> loop <|> (OpCall <$> custom)
+op = choice [intrinsic, loop, OpCall <$> custom]
 
 opDef :: Parser Def
 opDef = do

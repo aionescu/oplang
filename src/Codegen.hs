@@ -34,18 +34,19 @@ sign n
   | otherwise = "+"
 
 compileOp :: String -> Op -> CCode
-compileOp tape (Add n) = "*" ++ tape ++ sign n ++ "=" ++ show (abs n) ++ ";"
-compileOp tape (Move n) = tape ++ sign n ++ "=" ++ show (abs n) ++ ";"
-compileOp tape (Set n) = "*" ++ tape ++ "=" ++ show n ++ ";"
-compileOp tape (Pop n) = "*" ++ tape ++ "=*(s-=" ++ show n ++ ");"
-compileOp tape Push = "*(s++)=*" ++ tape ++ ";"
-compileOp tape Peek = "*" ++ tape ++ "=*(s-1);"
-compileOp tape (WithOffset off op) = compileOp ("(" ++ tape ++ "+" ++ show off ++ ")") op
-compileOp _ (Loop ops) = "while(*t){" ++ compileOps ops ++ "}"
-compileOp tape Read = "scanf(\"%c\"," ++ tape ++ ");"
-compileOp tape Write = "printf(\"%c\",*" ++ tape ++ ");"
-compileOp _ (OpCall c) = customName c ++ "();"
-compileOp _ (TailCall c) = customName c ++ "();"
+compileOp tape op = case op of
+  Add n -> "*" ++ tape ++ sign n ++ "=" ++ show (abs n) ++ ";"
+  Move n -> tape ++ sign n ++ "=" ++ show (abs n) ++ ";"
+  Set n -> "*" ++ tape ++ "=" ++ show n ++ ";"
+  Pop n -> "*" ++ tape ++ "=*(s-=" ++ show n ++ ");"
+  Push -> "*(s++)=*" ++ tape ++ ";"
+  Peek -> "*" ++ tape ++ "=*(s-1);"
+  WithOffset off op -> compileOp ("(" ++ tape ++ "+" ++ show off ++ ")") op
+  Loop ops -> "while(*t){" ++ compileOps ops ++ "}"
+  Read -> "scanf(\"%c\"," ++ tape ++ ");"
+  Write -> "printf(\"%c\",*" ++ tape ++ ");"
+  OpCall c -> customName c ++ "();"
+  TailCall c -> customName c ++ "();"
 
 compileMain :: [Op] -> CCode
 compileMain ops = mainPrologue ++ compileOps ops ++ "}"
