@@ -47,6 +47,14 @@ For more sample programs, see the [Samples](Samples/) folder.
 
 The recommended file extension for OpLang programs is `*.op`.
 
+## Compiler settings
+
+The compiler can be passed additional configuration via command-line arguments. These configurations are:
+
+* `opt-passes`: Sets the number of optimization passes to be performed during the optimization phase. Defaults to 64.
+* `stack-size`: Sets the size of the cross-operator stack. Defaults to 64KB (65536 bytes).
+* `tape-size`: Sets the size of the memory tape allocated for each operator call. Defaults to 64KB (65536 bytes).
+
 ## Compiler Internals
 
 The compiler works by translating `OpLang` code into C, then calling the system's C compiler (`cc`).
