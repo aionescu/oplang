@@ -74,7 +74,10 @@ optimizeOps :: Word -> Body -> Body
 optimizeOps passes ops = removeSet0 $ optimizeN passes (set0 : ops)
 
 callGraphStep :: Dict -> Dict -> Body -> Dict
-callGraphStep all needed crr = undefined
+callGraphStep all needed crr =
+  let called = calledOps crr
+  in
+    undefined
 
 optimize :: Word -> Dict -> Dict
 optimize passes d = optimizeOps passes <$> d

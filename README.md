@@ -47,7 +47,7 @@ For more sample programs, see the [Samples](Samples/) folder.
 
 The recommended file extension for OpLang programs is `*.op`.
 
-## Compiler settings
+## Compiler Settings
 
 The compiler can be passed additional configuration via command-line arguments. These configurations are:
 
