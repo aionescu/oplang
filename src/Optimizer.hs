@@ -2,8 +2,6 @@ module Optimizer(optimize) where
 
 import Ast
 
-maxPasses = 64
-
 canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False
 canDoWithOffset (Loop _) = False
@@ -55,7 +53,7 @@ optimizeOnce = go False []
       op : ops -> go changed (op : acc) ops
       [] -> (changed, reverse acc)
   
-optimizeN :: Int -> [Op] -> [Op]
+optimizeN :: Word -> [Op] -> [Op]
 optimizeN 0 ops = ops
 optimizeN n ops =
   if changed
@@ -69,11 +67,11 @@ removeSet0 :: [Op] -> [Op]
 removeSet0 (Set 0 : ops) = ops
 removeSet0 ops = ops
 
-optimizeOps :: [Op] -> [Op]
-optimizeOps ops = removeSet0 $ optimizeN maxPasses (set0 : ops)
+optimizeOps :: Word -> [Op] -> [Op]
+optimizeOps passes ops = removeSet0 $ optimizeN passes (set0 : ops)
 
-optimizeDef :: Def -> Def
-optimizeDef (Def name ops) = Def name (optimizeOps ops)
+optimizeDef :: Word -> Def -> Def
+optimizeDef passes (Def name ops) = Def name (optimizeOps passes ops)
 
-optimize :: Program -> Program
-optimize (Program defs mainOps) = Program (optimizeDef <$> defs) (optimizeOps mainOps)
+optimize :: Word -> Program -> Program
+optimize passes (Program defs mainOps) = Program (optimizeDef passes <$> defs) (optimizeOps passes mainOps)

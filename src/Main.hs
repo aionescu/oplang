@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
 module Main where
 
@@ -12,7 +12,7 @@ import System.Info(os)
 import System.Process(system)
 
 import Data.Text(Text)
-import Data.Text.IO as T
+import qualified Data.Text.IO as T
 
 import Text.Parsec(ParseError)
 
@@ -20,14 +20,15 @@ import Parser(parse)
 import Checker(check)
 import Optimizer(optimize)
 import Codegen(codegen)
+import Opts(Opts(..), getOpts)
 
-pipeline :: Text -> Either String Text
-pipeline src =
+pipeline :: Opts -> Text -> Either String Text
+pipeline Opts{..} src =
   src
   & parse
   >>= check
-  <&> optimize
-  <&> codegen
+  <&> optimize optsOptPasses
+  <&> codegen optsStackSize optsTapeSize
 
 binaryFile :: String -> String
 binaryFile file =
@@ -52,9 +53,11 @@ compileC file code = do
 
 main :: IO ()
 main = do
-  (path : _) <- getArgs
+  opts <- getOpts
+  let path = optsPath opts
+
   code <- T.readFile path
 
-  case pipeline code of
-    Left e -> Prelude.putStrLn e
+  case pipeline opts code of
+    Left e -> putStrLn e
     Right c -> compileC path c

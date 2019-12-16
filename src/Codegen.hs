@@ -6,7 +6,7 @@ import Data.Char(ord)
 import Numeric(showHex)
 
 import Data.Text(Text)
-import Data.Text as T
+import qualified Data.Text as T
 
 import Ast
 
@@ -18,8 +18,13 @@ showT = T.pack . show
 customName :: Char -> Text
 customName name = "o" <> T.pack (showHex (ord name) "")
 
-programPrologue :: CCode
-programPrologue = "#include<stdio.h>\n#include<string.h>\n#define S 65536\n#define T S\nchar sb[S],*s=sb;"
+programPrologue :: Word -> Word -> CCode
+programPrologue stackSize tapeSize =
+  "#include<stdio.h>\n#include<string.h>\n#define S "
+  <> showT stackSize
+  <> "\n#define T "
+  <> showT tapeSize
+  <> "\nchar u[S],*s=u;"
 
 allocTape :: CCode
 allocTape = "char b[T],*t=b;memset(b,0,T);"
@@ -59,5 +64,9 @@ compileOp tape op = case op of
 compileMain :: [Op] -> CCode
 compileMain ops = mainPrologue <> compileOps ops <> "}"
 
-codegen :: Program -> CCode
-codegen (Program defs ops) = programPrologue <> mconcat (compileProto <$> defs) <> mconcat (compileDef <$> defs) <> compileMain ops
+codegen :: Word -> Word -> Program -> CCode
+codegen stackSize tapeSize (Program defs ops) =
+  programPrologue stackSize tapeSize
+  <> mconcat (compileProto <$> defs)
+  <> mconcat (compileDef <$> defs)
+  <> compileMain ops

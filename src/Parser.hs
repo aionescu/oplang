@@ -1,15 +1,13 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
-module Parser(parse) where
+module Parser(Parser.parse) where
 
-import Control.Applicative((<|>))
 import Control.Exception(assert)
 
 import Data.Text(Text)
-import Data.Text as T
 
-import Text.Parsec(between, choice, eof, many, manyTill, Parsec, runParser, skipMany, Stream(..), try)
-import Text.Parsec.Char(anyChar, char, endOfLine, noneOf, oneOf, space)
+import Text.Parsec
+import Text.Parsec.Char
 
 import Ast
 
