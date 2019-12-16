@@ -5,18 +5,26 @@ module Codegen(codegen) where
 import Data.Char(ord)
 import Numeric(showHex)
 
+import Data.HashMap.Strict(HashMap)
+import qualified Data.HashMap.Strict as HashMap
+
 import Data.Text(Text)
 import qualified Data.Text as T
 
+import Data.Text.Lazy.Builder(Builder)
+import qualified Data.Text.Lazy as L
+import qualified Data.Text.Lazy.Builder as B
+
 import Ast
 
-type CCode = Text
+type CCode = Builder
 
-showT :: Show a => a -> Text
-showT = T.pack . show
+showT :: Show a => a -> CCode
+showT = B.fromText . T.pack . show
 
-customName :: Char -> Text
-customName name = "o" <> T.pack (showHex (ord name) "")
+cName :: Name -> CCode
+cName Nothing = "main"
+cName (Just name) = "o" <> B.fromText (T.pack (showHex (ord name) ""))
 
 programPrologue :: Word -> Word -> CCode
 programPrologue stackSize tapeSize =
@@ -29,24 +37,21 @@ programPrologue stackSize tapeSize =
 allocTape :: CCode
 allocTape = "char b[T],*t=b;memset(b,0,T);"
 
-mainPrologue :: CCode
-mainPrologue = "int main(){" <> allocTape
+compileProto :: Name -> Body -> CCode
+compileProto name _ = "void " <> cName name <> "();"
 
-compileProto :: Def -> CCode
-compileProto (Def name _) = "void " <> customName name <> "();"
-
-compileDef :: Def -> CCode
-compileDef (Def name body) = "void " <> customName name <> "(){" <> allocTape <> compileOps body <> "}"
+compileDef :: Name -> Body -> CCode
+compileDef name body = "void " <> cName name <> "(){" <> allocTape <> compileOps body <> "}"
 
 compileOps :: [Op] -> CCode
 compileOps ops = mconcat $ compileOp "t" <$> ops
 
-sign :: (Ord a, Num a) => a -> Text
+sign :: (Ord a, Num a) => a -> CCode
 sign n
   | n < 0 = "-"
   | otherwise = "+"
 
-compileOp :: Text -> Op -> CCode
+compileOp :: CCode -> Op -> CCode
 compileOp tape op = case op of
   Add n -> "*" <> tape <> sign n <> "=" <> showT (abs n) <> ";"
   Move n -> tape <> sign n <> "=" <> showT (abs n) <> ";"
@@ -58,15 +63,12 @@ compileOp tape op = case op of
   Loop ops -> "while(*t){" <> compileOps ops <> "}"
   Read -> "scanf(\"%c\"," <> tape <> ");"
   Write -> "printf(\"%c\",*" <> tape <> ");"
-  OpCall c -> customName c <> "();"
-  TailCall c -> customName c <> "();"
+  OpCall c -> cName c <> "();"
+  TailCall c -> cName c <> "();"
 
-compileMain :: [Op] -> CCode
-compileMain ops = mainPrologue <> compileOps ops <> "}"
-
-codegen :: Word -> Word -> Program -> CCode
-codegen stackSize tapeSize (Program defs ops) =
-  programPrologue stackSize tapeSize
-  <> mconcat (compileProto <$> defs)
-  <> mconcat (compileDef <$> defs)
-  <> compileMain ops
+codegen :: Word -> Word -> Dict -> Text
+codegen stackSize tapeSize d =
+  L.toStrict . B.toLazyText
+  $ programPrologue stackSize tapeSize
+  <> mconcat (HashMap.elems . HashMap.mapWithKey compileProto $ d)
+  <> mconcat (HashMap.elems . HashMap.mapWithKey compileDef $ d)

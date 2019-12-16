@@ -2,48 +2,29 @@
 
 module Checker(check) where
 
-import Data.List(intercalate, nub)
+import Data.List(intercalate)
 import Data.Maybe(catMaybes)
+
+import Data.HashMap.Strict(HashMap)
+import qualified Data.HashMap.Strict as HashMap
 
 import Ast
 
-calledOps :: [Op] -> [Char]
-calledOps = nub . \case
-  OpCall c : rest -> c : calledOps rest
-  TailCall c : rest -> c : calledOps rest
-  Loop l : rest -> calledOps l ++ calledOps rest
-  _ : rest -> calledOps rest
-  [] -> []
+isLegal :: Dict -> Body -> Bool
+isLegal d body = all (`HashMap.member` d) $ calledOps body
 
-checkCalls :: [Char] -> [Op] -> Bool
-checkCalls defined ops = all (`elem` defined) $ calledOps ops
+getIllegalBodies :: Dict -> Dict
+getIllegalBodies d = HashMap.filter (not . isLegal d) d
 
-checkDefs :: [Def] -> [Char]
-checkDefs defs = catMaybes $ go defined <$> defs
+getErrorMsgs :: Dict -> [String]
+getErrorMsgs = (toErrorMsg <$>) . HashMap.keys
   where
-    defined = defName <$> defs
+    toErrorMsg name = "Call to undefined operator in body of " ++ fromName name
 
-    go defs (Def name body) =
-      if checkCalls defs body
-      then Nothing
-      else Just name
-
-checkProgram :: Program -> Maybe String
-checkProgram (Program defs topLevel) = toMaybe $ intercalate "\n" (msgify (checkDefs defs) ++ go topLevel)
-  where
-    toMaybe "" = Nothing
-    toMaybe s = Just s
-
-    msgify chars = msgify1 <$> chars
-    msgify1 char = "Call to undefined operator in body of '" ++ [char] ++ "'."
-
-    go ops =
-      if checkCalls (defName <$> defs) ops
-      then []
-      else ["Call to undefined operator in toplevel."]
-
-check :: Program -> Either String Program
-check program =
-  case checkProgram program of
-    Nothing -> Right program
-    Just err -> Left err
+check :: Dict -> Either String Dict
+check d =
+  let msgs = getErrorMsgs $ getIllegalBodies d
+  in
+    case msgs of
+      [] -> Right d
+      l -> Left (intercalate "\n" l)

@@ -21,12 +21,13 @@ description:         Please see the README on GitHub at <https://github.com/Oldp
 
 dependencies:
 - base >= 4.7 && < 5
-- parsec
-- process
 - directory
 - filepath
-- text
 - optparse-applicative
+- parsec
+- process
+- text
+- unordered-containers
 
 executables:
   oplangc-exe:

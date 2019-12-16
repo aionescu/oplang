@@ -4,6 +4,9 @@ module Parser(Parser.parse) where
 
 import Control.Exception(assert)
 
+import Data.HashMap.Strict(HashMap)
+import qualified Data.HashMap.Strict as HashMap
+
 import Data.Text(Text)
 
 import Text.Parsec
@@ -58,7 +61,7 @@ custom :: Parser Char
 custom = noneOf reserved
 
 op :: Parser Op
-op = choice [intrinsic, loop, OpCall <$> custom]
+op = choice [intrinsic, loop, (OpCall . Just) <$> custom]
 
 opDef :: Parser Def
 opDef = do
@@ -66,17 +69,18 @@ opDef = do
   ws $ char '{'
   body <- many $ ws op
   char '}'
-  pure $ Def name body
+  pure $ (Just name, body)
 
-program :: Parser Program
+program :: Parser Dict
 program = do
   justWs
   defs <- many $ try $ ws opDef
-  topLevel <- many $ ws op
+  topBody <- many $ ws op
+  let topLevel = (Nothing, topBody)
   eof
-  pure $ Program defs topLevel
+  pure $ HashMap.fromList (topLevel : defs)
 
-parse :: Text -> Either String Program
+parse :: Text -> Either String Dict
 parse input =
   case runParser program () "" input of
     Left err -> Left $ show err

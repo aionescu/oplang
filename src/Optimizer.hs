@@ -1,5 +1,8 @@
 module Optimizer(optimize) where
 
+import Data.HashMap.Strict(HashMap)
+import qualified Data.HashMap.Strict as HashMap
+
 import Ast
 
 canDoWithOffset :: Op -> Bool
@@ -9,10 +12,10 @@ canDoWithOffset (OpCall _) = False
 canDoWithOffset (TailCall _) = False
 canDoWithOffset _ = True
 
-optimizeOnce :: [Op] -> (Bool, [Op])
+optimizeOnce :: Body -> (Bool, Body)
 optimizeOnce = go False []
   where
-    go :: Bool -> [Op] -> [Op] -> (Bool, [Op])
+    go :: Bool -> Body -> Body -> (Bool, Body)
     go changed acc ops = case ops of
       Add 0 : ops -> go True acc ops
       Move 0 : ops -> go True acc ops
@@ -53,7 +56,7 @@ optimizeOnce = go False []
       op : ops -> go changed (op : acc) ops
       [] -> (changed, reverse acc)
   
-optimizeN :: Word -> [Op] -> [Op]
+optimizeN :: Word -> Body -> Body
 optimizeN 0 ops = ops
 optimizeN n ops =
   if changed
@@ -63,15 +66,15 @@ optimizeN n ops =
   where
     (changed, ops') = optimizeOnce ops
 
-removeSet0 :: [Op] -> [Op]
+removeSet0 :: Body -> Body
 removeSet0 (Set 0 : ops) = ops
 removeSet0 ops = ops
 
-optimizeOps :: Word -> [Op] -> [Op]
+optimizeOps :: Word -> Body -> Body
 optimizeOps passes ops = removeSet0 $ optimizeN passes (set0 : ops)
 
-optimizeDef :: Word -> Def -> Def
-optimizeDef passes (Def name ops) = Def name (optimizeOps passes ops)
+callGraphStep :: Dict -> Dict -> Body -> Dict
+callGraphStep all needed crr = undefined
 
-optimize :: Word -> Program -> Program
-optimize passes (Program defs mainOps) = Program (optimizeDef passes <$> defs) (optimizeOps passes mainOps)
+optimize :: Word -> Dict -> Dict
+optimize passes d = optimizeOps passes <$> d
