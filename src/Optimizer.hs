@@ -1,6 +1,6 @@
 module Optimizer(optimize) where
 
-import Data.List((\\), nub)
+import Data.List((\\), nub, union)
 
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
@@ -82,7 +82,7 @@ callGraph pass d acc toGo crr =
     called = calledOps body \\ [crr]
     newAcc = (HashMap.insert crr body acc)
   in
-    case filter (not . (`HashMap.member` acc)) $ nub (toGo ++ called) of
+    case filter (not . (`HashMap.member` acc)) $ (toGo `union` called) of
       [] -> newAcc
       (next : nexts) ->
         callGraph pass d newAcc nexts next

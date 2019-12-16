@@ -43,9 +43,11 @@ pop = Pop 1
 set0 = Set 0
 
 calledOps :: [Op] -> [Name]
-calledOps = nub . \case
-  OpCall c : rest -> c : calledOps rest
-  TailCall c : rest -> c : calledOps rest
-  Loop l : rest -> calledOps l ++ calledOps rest
-  _ : rest -> calledOps rest
-  [] -> []
+calledOps = nub . go
+  where
+    go = \case
+      OpCall c : rest -> c : go rest
+      TailCall c : rest -> c : go rest
+      Loop l : rest -> go l ++ go rest
+      _ : rest -> go rest
+      [] -> []
