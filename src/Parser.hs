@@ -1,13 +1,19 @@
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+
 module Parser(parse) where
 
 import Control.Applicative((<|>))
 import Control.Exception(assert)
-import Text.Parsec(between, choice, eof, many, manyTill, Parsec, runParser, skipMany, try)
+
+import Data.Text(Text)
+import Data.Text as T
+
+import Text.Parsec(between, choice, eof, many, manyTill, Parsec, runParser, skipMany, Stream(..), try)
 import Text.Parsec.Char(anyChar, char, endOfLine, noneOf, oneOf, space)
 
 import Ast
 
-type Parser = Parsec String ()
+type Parser = Parsec Text ()
 
 skip :: Parser a -> Parser ()
 skip p = do
@@ -72,7 +78,7 @@ program = do
   eof
   pure $ Program defs topLevel
 
-parse :: String -> Either String Program
+parse :: Text -> Either String Program
 parse input =
   case runParser program () "" input of
     Left err -> Left $ show err

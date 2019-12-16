@@ -25,6 +25,7 @@ dependencies:
 - process
 - directory
 - filepath
+- text
 
 executables:
   oplangc-exe:
