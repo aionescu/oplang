@@ -28,13 +28,13 @@ optimizeOnce = go False []
       Move a : Move b : ops -> go True acc (Move (a + b) : ops)
       Pop a : Pop b : ops -> go True acc (Pop (a + b) : ops)
 
-      Add _ : Read : ops -> go True acc (Read : ops)
-      Add _ : Pop n : ops -> go True acc (Pop n : ops)
-      Add _ : Set s : ops -> go True acc (Set s : ops)
+      Add _ : ops@(Read : _) -> go True acc ops
+      Add _ : ops@(Pop n : _) -> go True acc ops
+      Add _ : ops@(Set s : _) -> go True acc ops
 
-      Set _ : Read : ops -> go True acc (Read : ops)
-      Set _ : Pop n : ops -> go True acc (Pop n : ops)
-      Set _ : Set s : ops -> go True acc (Set s : ops)
+      Set _ : ops@(Read : _) -> go True acc ops
+      Set _ : ops@(Pop n : _) -> go True acc ops
+      Set _ : ops@(Set s : _) -> go True acc ops
 
       Pop n : Push : ops -> go True acc (Pop (n - 1) : Peek : ops)
       Push : Pop n : ops -> go True acc (Pop (n - 1) : ops)
@@ -45,8 +45,8 @@ optimizeOnce = go False []
             _ -> go True acc (WithOffset m op : ops)
 
       Set 0 : Loop _ : ops -> go True acc (set0 : ops)
-      Loop l : Loop _ : ops -> go True acc (Loop l : ops)
-      Loop [Loop l] : ops -> go True acc (Loop l : ops)
+      l@(Loop _) : Loop _ : ops -> go True acc (l : ops)
+      Loop [l@(Loop _)] : ops -> go True acc (l : ops)
       Loop l : ops ->
         let (changed, l') = go False [] l
         in go changed (Loop l' : acc) ops
