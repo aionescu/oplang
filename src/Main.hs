@@ -45,7 +45,7 @@ compileC :: String -> Text -> IO ()
 compileC file code = do
   let cPath = cFile file
   T.writeFile cPath code
-  
+
   system ("cc -o " <> binaryFile file <> " " <> cPath)
   removeFile cPath
   

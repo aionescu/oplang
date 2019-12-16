@@ -1,5 +1,7 @@
 module Optimizer(optimize) where
 
+import Data.List((\\), nub)
+
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
@@ -73,11 +75,18 @@ removeSet0 ops = ops
 optimizeOps :: Word -> Body -> Body
 optimizeOps passes ops = removeSet0 $ optimizeN passes (set0 : ops)
 
-callGraphStep :: Dict -> Dict -> Body -> Dict
-callGraphStep all needed crr =
-  let called = calledOps crr
+callGraph :: Word -> Dict -> Dict -> [Name] -> Name -> Dict
+callGraph pass d acc toGo crr =
+  let
+    body = optimizeOps pass $ d HashMap.! crr
+    called = calledOps body \\ [crr]
+    newAcc = (HashMap.insert crr body acc)
   in
-    undefined
+    case filter (not . (`HashMap.member` acc)) $ nub (toGo ++ called) of
+      [] -> newAcc
+      (next : nexts) ->
+        callGraph pass d newAcc nexts next
 
 optimize :: Word -> Dict -> Dict
-optimize passes d = optimizeOps passes <$> d
+optimize passes d =
+  callGraph passes d HashMap.empty [] Nothing
