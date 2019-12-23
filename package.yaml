@@ -27,6 +27,7 @@ dependencies:
 - parsec
 - process
 - text
+- text-builder
 - unordered-containers
 
 executables:

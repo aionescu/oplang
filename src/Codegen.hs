@@ -11,20 +11,19 @@ import qualified Data.HashMap.Strict as HashMap
 import Data.Text(Text)
 import qualified Data.Text as T
 
-import Data.Text.Lazy.Builder(Builder)
-import qualified Data.Text.Lazy as L
-import qualified Data.Text.Lazy.Builder as B
+import Text.Builder(Builder)
+import qualified Text.Builder as B
 
 import Ast
 
 type CCode = Builder
 
 showT :: Show a => a -> CCode
-showT = B.fromText . T.pack . show
+showT = B.string . show
 
 cName :: Name -> CCode
 cName Nothing = "main"
-cName (Just name) = "o" <> B.fromText (T.pack (showHex (ord name) ""))
+cName (Just name) = "o" <> B.string (showHex (ord name) "")
 
 programPrologue :: Word -> Word -> CCode
 programPrologue stackSize tapeSize =
@@ -68,7 +67,7 @@ compileOp tape op = case op of
 
 codegen :: Word -> Word -> Dict -> Text
 codegen stackSize tapeSize d =
-  L.toStrict . B.toLazyText
+  B.run
   $ programPrologue stackSize tapeSize
   <> mconcat (HashMap.elems . HashMap.mapWithKey compileProto $ d)
   <> mconcat (HashMap.elems . HashMap.mapWithKey compileDef $ d)
