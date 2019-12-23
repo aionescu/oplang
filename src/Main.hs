@@ -11,7 +11,7 @@ import System.FilePath(dropExtension)
 import System.Info(os)
 import System.Process(system)
 
-import Data.Text(Text)
+import Data.Text(Text, pack)
 import qualified Data.Text.IO as T
 
 import Text.Parsec(ParseError)
@@ -22,7 +22,7 @@ import Optimizer(optimize)
 import Codegen(codegen)
 import Opts(Opts(..), getOpts)
 
-pipeline :: Opts -> Text -> Either String Text
+pipeline :: Opts -> Text -> Either Text Text
 pipeline Opts{..} src =
   src
   & parse
@@ -59,10 +59,10 @@ main = do
   exists <- doesFileExist path
 
   if not exists
-  then putStrLn $ "Error: File '" ++ path ++ "' not found."
+  then T.putStrLn $ "Error: File '" <> pack path <> "' not found."
   else do
     code <- T.readFile path
 
     case pipeline opts code of
-      Left e -> putStrLn e
+      Left e -> T.putStrLn e
       Right c -> compileC path c

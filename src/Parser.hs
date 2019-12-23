@@ -8,6 +8,7 @@ import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Text(Text)
+import qualified Data.Text as T
 
 import Text.Parsec
 import Text.Parsec.Char
@@ -80,8 +81,8 @@ program = do
   eof
   pure $ HashMap.fromList (topLevel : defs)
 
-parse :: Text -> Either String Dict
+parse :: Text -> Either Text Dict
 parse input =
   case runParser program () "" input of
-    Left err -> Left $ show err
+    Left err -> Left $ T.pack $ show err
     Right p -> Right p
