@@ -28,13 +28,6 @@ type Def = (Maybe Char, Body)
 type Name = Maybe Char
 type Dict = HashMap Name Body
 
-toName :: Char -> Name
-toName = Just
-
-fromName :: Name -> String
-fromName Nothing = "toplevel"
-fromName (Just n) = [n]
-
 incr = Add 1
 decr = Add (-1)
 movl = Move (-1)

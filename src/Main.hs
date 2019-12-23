@@ -6,7 +6,7 @@ import Data.Function((&))
 import Data.Functor((<&>))
 
 import System.Environment(getArgs)
-import System.Directory(removeFile)
+import System.Directory(doesFileExist, removeFile)
 import System.FilePath(dropExtension)
 import System.Info(os)
 import System.Process(system)
@@ -56,8 +56,13 @@ main = do
   opts <- getOpts
   let path = optsPath opts
 
-  code <- T.readFile path
+  exists <- doesFileExist path
 
-  case pipeline opts code of
-    Left e -> putStrLn e
-    Right c -> compileC path c
+  if not exists
+  then putStrLn $ "Error: File '" ++ path ++ "' not found."
+  else do
+    code <- T.readFile path
+
+    case pipeline opts code of
+      Left e -> putStrLn e
+      Right c -> compileC path c

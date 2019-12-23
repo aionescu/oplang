@@ -2,28 +2,33 @@
 
 module Checker(check) where
 
-import Data.List(intercalate)
-import Data.Maybe(catMaybes)
+import Control.Monad(join)
+import Data.List(filter, intercalate, nub, null)
+import Data.Maybe(catMaybes, fromJust)
 
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
 import Ast
 
-isLegal :: Dict -> Body -> Bool
-isLegal d body = all (`HashMap.member` d) $ calledOps body
+illegalCalls :: Dict -> Body -> [Name]
+illegalCalls d body = nub $ filter (not . (`HashMap.member` d)) $ calledOps body
 
-getIllegalBodies :: Dict -> Dict
-getIllegalBodies d = HashMap.filter (not . isLegal d) d
+illegalBodies :: Dict -> HashMap Name [Name]
+illegalBodies d = HashMap.filter (not . null) $ HashMap.map (illegalCalls d) d
 
-getErrorMsgs :: Dict -> [String]
-getErrorMsgs = (toErrorMsg <$>) . HashMap.keys
+errorMsgs :: HashMap Name [Name] -> HashMap Name [String]
+errorMsgs d = HashMap.mapWithKey errorMsg d
   where
-    toErrorMsg name = "Call to undefined operator in body of " ++ fromName name
+    errorMsg name ops = errorMsg1 name <$> ops
+    errorMsg1 name op = "Error: Call to undefined operator '" ++ [fromJust op] ++ "' in " ++ fromName name ++ "."
+
+    fromName Nothing = "top level"
+    fromName (Just n) = "body of '" ++ [n, '\'']
 
 check :: Dict -> Either String Dict
 check d =
-  let msgs = getErrorMsgs $ getIllegalBodies d
+  let msgs = join $ HashMap.elems $ errorMsgs $ illegalBodies d
   in
     case msgs of
       [] -> Right d
