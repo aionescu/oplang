@@ -3,8 +3,8 @@
 module Checker(check) where
 
 import Control.Monad(join)
-import Data.List(filter, intercalate, nub, null)
-import Data.Maybe(catMaybes, fromJust)
+import Data.List(filter, nub, null)
+import Data.Maybe(fromJust)
 
 import Data.Text(Text)
 import qualified Data.Text as T

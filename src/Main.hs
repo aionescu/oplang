@@ -5,7 +5,6 @@ module Main where
 import Data.Function((&))
 import Data.Functor((<&>))
 
-import System.Environment(getArgs)
 import System.Directory(doesFileExist, removeFile)
 import System.FilePath(dropExtension)
 import System.Info(os)
@@ -14,7 +13,8 @@ import System.Process(system)
 import Data.Text(Text, pack)
 import qualified Data.Text.IO as T
 
-import Text.Parsec(ParseError)
+import Text.Printf(printf)
+import System.CPUTime(getCPUTime)
 
 import Parser(parse)
 import Checker(check)
@@ -48,11 +48,21 @@ compileC file code = do
 
   system ("cc -o " <> binaryFile file <> " " <> cPath)
   removeFile cPath
-  
-  pure ()
+
+-- https://wiki.haskell.org/Timing_computations
+time :: IO a -> IO a
+time a = do
+  start <- getCPUTime
+  v <- a
+  end <- getCPUTime
+
+  let diff = (fromIntegral (end - start)) / (10 ^ 12)
+  printf "Done in %0.3fs.\n" (diff :: Double)
+
+  pure v
 
 main :: IO ()
-main = do
+main = {-time $-} do
   opts <- getOpts
   let path = optsPath opts
 

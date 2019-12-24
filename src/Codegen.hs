@@ -1,15 +1,13 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 
 module Codegen(codegen) where
 
 import Data.Char(ord)
 import Numeric(showHex)
 
-import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Text(Text)
-import qualified Data.Text as T
 
 import Text.Builder(Builder)
 import qualified Text.Builder as B
@@ -51,7 +49,7 @@ sign n
   | otherwise = "+"
 
 compileOp :: CCode -> Op -> CCode
-compileOp tape op = case op of
+compileOp tape = \case
   Add n -> "*" <> tape <> sign n <> "=" <> showT (abs n) <> ";"
   Move n -> tape <> sign n <> "=" <> showT (abs n) <> ";"
   Set n -> "*" <> tape <> "=" <> showT n <> ";"

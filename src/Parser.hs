@@ -2,16 +2,12 @@
 
 module Parser(Parser.parse) where
 
-import Control.Exception(assert)
-
-import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Text(Text)
 import qualified Data.Text as T
 
-import Text.Parsec
-import Text.Parsec.Char
+import Text.Parsec((<|>), anyChar, between, char, choice, endOfLine, eof, many, manyTill, noneOf, Parsec, runParser, space, skipMany, try)
 
 import Ast
 

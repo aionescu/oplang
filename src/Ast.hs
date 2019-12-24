@@ -4,10 +4,8 @@ module Ast where
 
 import Data.Int(Int8)
 import Data.List(nub)
-import Data.Word(Word8)
 
 import Data.HashMap.Strict(HashMap)
-import qualified Data.HashMap.Strict as HashMap
 
 data Op
   = Add Int8

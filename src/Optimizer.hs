@@ -1,8 +1,7 @@
 module Optimizer(optimize) where
 
-import Data.List((\\), nub, union)
+import Data.List((\\), union)
 
-import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
 import Ast

@@ -39,5 +39,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     - -O2
+    
     - -Wincomplete-patterns
     - -Wincomplete-uni-patterns
+    - -Wunused-imports
