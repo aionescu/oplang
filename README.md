@@ -52,8 +52,8 @@ The recommended file extension for OpLang programs is `*.op`.
 The compiler can be passed additional configuration via command-line arguments. These configurations are:
 
 * `opt-passes`: Sets the number of optimization passes to be performed during the optimization phase. Defaults to 64.
-* `stack-size`: Sets the size of the cross-operator stack. Defaults to 64KB (65536 bytes).
-* `tape-size`: Sets the size of the memory tape allocated for each operator call. Defaults to 64KB (65536 bytes).
+* `stack-size`: Sets the size of the cross-operator stack. Defaults to 4KB (4096 bytes).
+* `tape-size`: Sets the size of the memory tape allocated for each operator call. Defaults to 4KB (4096 bytes).
 
 ## Compiler Internals
 

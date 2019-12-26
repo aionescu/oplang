@@ -1,3 +1,5 @@
-h { +[-[<<[+[--->]-[<<<]]]>>>-]>-.---.>..>.<<<<-.<+.>>>>>.>.<<.<-. }
-i { hi }
-i
+# Keeps printing 'hello world' until a stack overflow.
+# Should result in an infinite loop if tail recursion is implemented properly.
+
+h { +[-[<<[+[--->]-[<<<]]]>>>-]>-.---.>..>.<<<<-.<+.>>>>>.>.<<.<-. h }
+h

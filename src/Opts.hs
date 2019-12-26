@@ -13,7 +13,7 @@ defaultOptPasses :: Word
 defaultOptPasses = 64
 
 defaultStackSize :: Word
-defaultStackSize = 65536
+defaultStackSize = 4096
 
 defaultTapeSize :: Word
 defaultTapeSize = defaultStackSize
