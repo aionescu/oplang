@@ -4,3 +4,4 @@ oplangc.cabal
 
 *.c
 *.exe
+*.out

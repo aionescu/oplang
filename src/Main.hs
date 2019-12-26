@@ -31,12 +31,11 @@ pipeline Opts{..} src =
   <&> codegen optsStackSize optsTapeSize
 
 binaryFile :: String -> String
-binaryFile file =
-  case os of
-    "mingw32" -> noExt <> ".exe"
-    _ -> noExt
+binaryFile file = dropExtension file ++ ext
   where
-    noExt = dropExtension file
+    ext = case os of
+      "mingw32" -> ".exe"
+      _ -> ".out"
 
 cFile :: String -> String
 cFile file = dropExtension file <> ".c"
@@ -57,12 +56,12 @@ time a = do
   end <- getCPUTime
 
   let diff = (fromIntegral (end - start)) / (10 ^ 12)
-  printf "Done in %0.3fs.\n" (diff :: Double)
+  printf "Compiled in %0.3fs.\n" (diff :: Double)
 
   pure v
 
 main :: IO ()
-main = {-time $-} do
+main = time $ do
   opts <- getOpts
   let path = optsPath opts
 
