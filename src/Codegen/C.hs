@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE LambdaCase, OverloadedStrings, RecordWildCards #-}
 
-module Codegen(codegen) where
+module Codegen.C(compile) where
 
 import Data.Char(ord)
 import Numeric(showHex)
@@ -8,11 +8,17 @@ import Numeric(showHex)
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Text(Text)
+import qualified Data.Text.IO as T
 
 import Text.Builder(Builder)
 import qualified Text.Builder as B
 
+import System.Directory(removeFile)
+import System.FilePath(dropExtension)
+import System.Process(system)
+
 import Ast
+import Opts(Opts(..))
 
 type CCode = Builder
 
@@ -69,3 +75,16 @@ codegen stackSize tapeSize d =
   $ programPrologue stackSize tapeSize
   <> mconcat (HashMap.elems . HashMap.mapWithKey compileProto $ d)
   <> mconcat (HashMap.elems . HashMap.mapWithKey compileDef $ d)
+
+cFile :: String -> String
+cFile file = dropExtension file <> ".c"
+
+compile :: Opts -> Dict -> IO ()
+compile Opts{..} d = do
+  let cPath = cFile optsPath
+  let code = codegen optsStackSize optsTapeSize d
+
+  T.writeFile cPath code
+
+  system ("cc -o " <> optsOutPath <> " " <> cPath)
+  removeFile cPath

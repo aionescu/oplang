@@ -2,51 +2,64 @@
 
 module Main where
 
-import Data.Function((&))
 import Data.Functor((<&>))
-
-import System.Directory(doesFileExist, removeFile)
-import System.FilePath(dropExtension)
-import System.Info(os)
-import System.Process(system)
-
+import System.Directory(doesFileExist)
 import Data.Text(Text, pack)
 import qualified Data.Text.IO as T
-
 import Text.Printf(printf)
 import System.CPUTime(getCPUTime)
+import System.FilePath(dropExtension)
+import System.Info(os)
 
 import Parser(parse)
 import Checker(check)
 import Optimizer(optimize)
-import Codegen(codegen)
 import Opts(Opts(..), getOpts)
+import Ast(Dict)
 
-pipeline :: Opts -> Text -> Either Text Text
-pipeline Opts{..} src =
-  src
-  & parse
-  >>= check
-  <&> optimize optsOptPasses
-  <&> codegen optsStackSize optsTapeSize
+import qualified Codegen.C as C
+-- import qualified Codegen.LLVM as LLVM
 
-binaryFile :: String -> String
-binaryFile file = dropExtension file ++ ext
+tryReadFile :: String -> IO (Either Text Text)
+tryReadFile path = do
+  exists <- doesFileExist path
+
+  if exists
+  then do
+    f <- T.readFile path
+    pure $ Right f
+  else 
+    pure $ Left $ "Error: File '" <> pack path <> "' not found."
+
+getOutPath :: String -> String
+getOutPath file = dropExtension file ++ ext
   where
     ext = case os of
       "mingw32" -> ".exe"
       _ -> ".out"
 
-cFile :: String -> String
-cFile file = dropExtension file <> ".c"
+changeOutPath :: Opts -> Opts
+changeOutPath opts =
+  case optsOutPath opts of
+    "" -> opts { optsOutPath = getOutPath (optsPath opts) }
+    _ -> opts
 
-compileC :: String -> Text -> IO ()
-compileC file code = do
-  let cPath = cFile file
-  T.writeFile cPath code
+pipelinePure :: Word -> Either Text Text -> Either Text Dict
+pipelinePure passes code =
+  code
+  >>= parse
+  >>= check
+  <&> optimize passes
 
-  system ("cc -o " <> binaryFile file <> " " <> cPath)
-  removeFile cPath
+pipeline :: Opts -> IO ()
+pipeline opts@Opts{..} = do
+  either <-
+    tryReadFile optsPath
+    <&> pipelinePure optsOptPasses
+
+  case either of
+    Left err -> T.putStrLn err
+    Right code -> C.compile opts code
 
 -- https://wiki.haskell.org/Timing_computations
 time :: IO a -> IO a
@@ -63,15 +76,4 @@ time a = do
 main :: IO ()
 main = time $ do
   opts <- getOpts
-  let path = optsPath opts
-
-  exists <- doesFileExist path
-
-  if not exists
-  then T.putStrLn $ "Error: File '" <> pack path <> "' not found."
-  else do
-    code <- T.readFile path
-
-    case pipeline opts code of
-      Left e -> T.putStrLn e
-      Right c -> compileC path c
+  pipeline $ changeOutPath opts
