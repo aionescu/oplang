@@ -49,11 +49,7 @@ The recommended file extension for OpLang programs is `*.op`.
 
 ## Compiler Settings
 
-The compiler can be passed additional configuration via command-line arguments. These configurations are:
-
-* `opt-passes`: Sets the number of optimization passes to be performed during the optimization phase. Defaults to 64.
-* `stack-size`: Sets the size of the cross-operator stack. Defaults to 4KB (4096 bytes).
-* `tape-size`: Sets the size of the memory tape allocated for each operator call. Defaults to 4KB (4096 bytes).
+The compiler can be passed additional configuration via command-line arguments. In order to see the available options, run the compiler with the `-h` or `--help` argument.
 
 ## Compiler Internals
 
@@ -62,7 +58,9 @@ The compiler also performs a series of optimizations on the code. For more detai
 
 ## Building from source
 
-In order to build the compiler, simply run `stack build` in the repo's root directory. You will need the `Stack` build tool, which you can download [here](https://www.haskell.org/platform/).
+In order to build the compiler, simply run `stack build` in the repo's root directory. You will need the `Stack` build tool, which you can download [here](https://docs.haskellstack.org/en/stable/README/).
+
+Once built, run `stack run -- <args>` to run the compiler. (e.g. `stack run -- -o a.out code.op`)
 
 ## License
 
