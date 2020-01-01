@@ -6,8 +6,6 @@ import Data.Functor((<&>))
 import System.Directory(doesFileExist)
 import Data.Text(Text, pack)
 import qualified Data.Text.IO as T
-import Text.Printf(printf)
-import System.CPUTime(getCPUTime)
 import System.FilePath(dropExtension)
 import System.Info(os)
 
@@ -61,19 +59,7 @@ pipeline opts@Opts{..} = do
     Left err -> T.putStrLn err
     Right code -> C.compile opts code
 
--- https://wiki.haskell.org/Timing_computations
-time :: IO a -> IO a
-time a = do
-  start <- getCPUTime
-  v <- a
-  end <- getCPUTime
-
-  let diff = (fromIntegral (end - start)) / (10 ^ 12)
-  printf "Compiled in %0.3fs.\n" (diff :: Double)
-
-  pure v
-
 main :: IO ()
-main = time $ do
+main = do
   opts <- getOpts
   pipeline $ changeOutPath opts
