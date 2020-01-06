@@ -23,7 +23,7 @@ OpLang has 10 "intrinsic" operators (8 of which are the Brainfuck operators, wit
 * `;`: Pop a value from the stack and move it into the current cell
 * `:`: Push the value of the current cell onto the stack
 * `,`: Read a character from stdin and store its ASCII value in the current cell
-* `.`: Interpret the current cell as an ASCII character and print it to stdin
+* `.`: Interpret the current cell as an ASCII character and print it to stdout
 * `[`: Begin a loop (i.e. if the value at the current cell is zero, jump to the next `]`)
 * `]`: End a loop (i.e. if the value at the current cell is non-zero, jump to the previous `[`)
 
