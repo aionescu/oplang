@@ -1,5 +1,6 @@
-# Keeps printing 'hello world' until a stack overflow.
+# Keeps printing 'a' until a stack overflow occurs.
 # Should result in an infinite loop if tail recursion is implemented properly.
 
-h { +[-[<<[+[--->]-[<<<]]]>>>-]>-.---.>..>.<<<<-.<+.>>>>>.>.<<.<-. h }
-h
+a { ++++ ++++ [> ++++ ++++ ++++ < -] > + : }
+m { ;:. m }
+a m

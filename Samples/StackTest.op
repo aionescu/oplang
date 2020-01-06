@@ -1,6 +1,0 @@
-# Reads a character from stdin, then keeps printing it until it overflows the stack.
-# Should result in an infinite loop if tail recursion is implemented properly.
-# Uses 1 stack cell and 1 tape cell.
-
-t { ;:. t }
-,:t
