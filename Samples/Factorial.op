@@ -1,0 +1,11 @@
+# Reads a single-digit number, then calculates its factorial.
+# e.g. for input '5', prints 'x' (ASCII value of 120 = fact(5))
+
+0 { +++ +++ [> ++++ ++++ < -] > : }
+s { ; > ; [- < - >] < : }
+r { 0 , : s }
+
+m { ; > ; < [->[->+>+<<]>[-<+>]<<]>[-]>>[-<<<+>>>]<<< : }
+f { ; > + < [: > : m ; < -] > : }
+
+rf ;.
