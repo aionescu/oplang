@@ -54,7 +54,89 @@ The compiler can be passed additional configuration via command-line arguments. 
 ## Compiler Internals
 
 The compiler works by translating `OpLang` code into C, then calling the system's C compiler (`cc`).
-The compiler also performs a series of optimizations on the code. For more details about optimizations, see [this](https://github.com/Oldpug/Bfi#ast-and-optimizations).
+The compiler also performs a series of optimizations on the code.
+
+### Optimizations
+
+The compiler performs a series of optimizations on OpLang source code.
+Some of the optimizations are simply Brainfuck optimizations, which carry over to OpLang.
+
+Here's a list of the performed optimizations:
+
+#### Instruction Merging
+
+Multiple instructions of the same kind (e.g. + and -, or < and >) are merged into a single instruction.
+
+```op
++++ --- ++ => Add 2
+```
+
+```op
+> <<<< => Move -3
+```
+
+```op
++++ --- => # Nothing
+```
+
+#### Efficient cell zeroing
+
+Cell zeroing is usually achieved by using `[-]`.
+The compiler recognizes this pattern, and transforms it into a single assignment.
+
+```op
+[-] => Set 0
+```
+
+Note that because cells can overflow, `[+]` achieves the same behavior.
+
+```op
+[+] => Set 0
+```
+
+#### Dead Code Elimination
+
+In some cases (such as consecutive loops), the compiler can statically determine that particular instructions have no effect, so they are removed.
+
+```op
+[+>][<-] => [+>] => Loop [Add 1, Move 1] # Second loop is not compiled
+```
+
+Also, operators that are defined but never used do not get compiled.
+They are still checked for correctness.
+
+```op
+n { ... } # Unused
+m { ... }           => m { ... }
+... m                  ... m
+```
+
+#### Strength reduction
+
+In some cases, certain instructions can be replaced with cheaper ones.
+For example, adding after a loop can be replaced with a `Set` instruction, as the value of the cell is 0 (since it exited the loop), so the 2 instructions are equivalent.
+
+```op
+[-]+++ => Set 0, Add 3 => Set 3
+```
+
+Also, setting a value after adding to it (or subtracting from it) will overwrite the result of the additions, so they are removed.
+
+```op
++++[-] => Add 3, Set 0 => Set 0
+```
+
+Consecutive `Set`s also behave similarly: Only the last `Set` is compiled, previous ones are elided.
+
+#### Offseted instructions
+
+A common pattern that arises in Brainfuck/OpLang code is the following structure: `[>>>+<<<-]` (the number of `>`s, `<`s and `+`s may vary, and `+` may be replaced by another instruction)
+
+Instead of generating the following code for such structures: `Loop [Move 3, Add 1, Move -3, Add -1]`, the compiler generates the following code: `Loop [AtOffset 3 (Add 1), Add -1]`, thus performing less arithmetic operations.
+
+#### Tail Call Optimization*
+
+While not implementing full tail call optimization (due to using C as a backend, which does not support TCO), the compiler detects functions that are called in tail position and instead of allocating a new tape for them, it passes the caller's tape to the tail-called function (i.e. the caller and the callee share a single tape).
 
 ## Building from source
 
