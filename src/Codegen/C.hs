@@ -37,14 +37,14 @@ programPrologue stackSize tapeSize =
   <> showT tapeSize
   <> "\nchar u[S],*s=u;"
 
-allocTape :: CCode
-allocTape = "char b[T],*t=b;memset(b,0,T);"
-
 compileProto :: Name -> Body -> CCode
-compileProto name _ = "void " <> cName name <> "();"
+compileProto name _ = "void " <> cName name <> "(char*t);"
 
 compileDef :: Name -> Body -> CCode
-compileDef name body = "void " <> cName name <> "(){" <> allocTape <> compileOps body <> "}"
+compileDef name body = "void " <> cName name <> "(char*t){memset(t,0,T);" <> compileOps body <> "}"
+
+compileMain :: Body -> CCode
+compileMain body = "int main(){char b[T],*t=b;memset(b,0,T);" <> compileOps body <> "return 0;}" 
 
 compileOps :: [Op] -> CCode
 compileOps ops = mconcat $ compileOp "t" <$> ops
@@ -66,15 +66,18 @@ compileOp tape = \case
   Loop ops -> "while(*t){" <> compileOps ops <> "}"
   Read -> "scanf(\"%c\"," <> tape <> ");"
   Write -> "printf(\"%c\",*" <> tape <> ");"
-  OpCall c -> cName c <> "();"
-  TailCall c -> cName c <> "();"
+  OpCall c -> "{char b[T];" <> cName c <> "(b);}"
+  TailCall c -> cName c <> "(t);"
 
 codegen :: Word -> Word -> Dict -> Text
 codegen stackSize tapeSize d =
+  let d' = HashMap.delete Nothing d
+  in
   B.run
   $ programPrologue stackSize tapeSize
-  <> mconcat (HashMap.elems . HashMap.mapWithKey compileProto $ d)
-  <> mconcat (HashMap.elems . HashMap.mapWithKey compileDef $ d)
+  <> mconcat (HashMap.elems . HashMap.mapWithKey compileProto $ d')
+  <> mconcat (HashMap.elems . HashMap.mapWithKey compileDef $ d')
+  <> compileMain (d HashMap.! Nothing)
 
 cFile :: String -> String
 cFile file = dropExtension file <> ".c"
