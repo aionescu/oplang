@@ -4,7 +4,7 @@ import Data.List((\\), union)
 
 import qualified Data.HashMap.Strict as HashMap
 
-import Ast
+import AST(Op(..), Body, Dict, Name, set0, calledOps)
 
 canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False

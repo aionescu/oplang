@@ -1,6 +1,6 @@
 module Codegen.LLVM(compile) where
 
-import Ast
+import AST(Dict)
 import Opts(Opts(..))
 
 compile :: Opts -> Dict -> IO ()

@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Ast where
+module AST(Op(..), Body, Def, Name, Dict, incr, decr, movl, movr, pop, set0, calledOps) where
 
 import Data.Int(Int8)
 import Data.List(nub)

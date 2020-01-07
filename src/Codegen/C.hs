@@ -17,7 +17,7 @@ import System.Directory(removeFile)
 import System.FilePath(dropExtension)
 import System.Process(system)
 
-import Ast
+import AST(Op(..), Name, Body, Dict)
 import Opts(Opts(..))
 
 type CCode = Builder

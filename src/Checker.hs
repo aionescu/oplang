@@ -12,7 +12,7 @@ import qualified Data.Text as T
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
-import Ast
+import AST(Dict, Body, Name, calledOps)
 
 illegalCalls :: Dict -> Body -> [Name]
 illegalCalls d body = nub $ filter (not . (`HashMap.member` d)) $ calledOps body

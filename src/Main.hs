@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
-module Main where
+module Main(main) where
 
 import Data.Functor((<&>))
 import System.Directory(doesFileExist)
@@ -13,7 +13,7 @@ import Parser(parse)
 import Checker(check)
 import Optimizer(optimize)
 import Opts(Opts(..), getOpts)
-import Ast(Dict)
+import AST(Dict)
 
 import qualified Codegen.C as C
 -- import qualified Codegen.LLVM as LLVM

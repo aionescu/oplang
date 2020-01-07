@@ -9,7 +9,7 @@ import qualified Data.Text as T
 
 import Text.Parsec((<|>), anyChar, between, char, choice, endOfLine, eof, many, manyTill, noneOf, Parsec, runParser, space, skipMany, try)
 
-import Ast
+import AST(Op(..), Def, Dict, incr, decr, movl, movr, pop)
 
 type Parser = Parsec Text ()
 
