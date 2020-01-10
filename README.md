@@ -4,13 +4,14 @@ The compiler for `OpLang`, a stack-based esoteric programming language inspired 
 
 ## OpLang Basics
 
-In short, OpLang (**Op**erator **Lang**uage) is an extended version of Brainfuck that supports defining custom operators, which communicate through a stack.
+In short, OpLang (**Op**erator **Lang**uage) is an extended version of Brainfuck that supports defining custom operators, which use a stack for passing arguments and return values.
 
-The memory model of OpLang is similar to that of Brainfuck: There is a "memory tape", consisting of an array of cells, and a "cursor" that keeps track of a cell (the "current cell"), initially set to the first cell in the tape.
+The memory model of OpLang is similar to that of Brainfuck: There is a "memory tape", consisting of an array of cells (each cell taking up 1 byte), and a "cursor" that keeps track of a cell (the "current cell"), initially set to the first cell in the tape.
 The language's primitive instructions, called "intrinsics", modify either the cursor, or the current cell.
 
-In OpLang, each operator (similar to functions or procedures in other languages) has its own tape, that is reset before each invocation of that operator.
-The only way for operators to communicate (e.g. pass arguments or return values) is through the `stack`, a special "global" tape which does not get reset, and which all operators have access to.
+In OpLang, every time an operator is invoked, a new tape is allocated on the stack (and zeroed out), and when the operator returns, the tape is deallocated (similar to  the stack frames of functions or procedures in other languages).
+
+The only way for operators to communicate (e.g. pass arguments or return values) is through the `stack` (which, ironically, sits on the heap), a special "global" tape which never gets reset, and which all operators have access to.
 
 ## Syntax
 
@@ -29,9 +30,9 @@ OpLang has 10 "intrinsic" operators (8 of which are the Brainfuck operators, wit
 
 An OpLang program consists of a (potentially empty) series of `operator definitions`, followed by a series of operator calls, called the `toplevel` (similar to a `main()` function in other languages).
 
-An operator definition consists of an operator name, which is any character that is not a reserved operator, whitespace, or any of `{}`, followed by a series of operator calls delimited between `{` and `}`.
+An operator definition consists of an operator name, which is any non-whitespace character that is not reserved (i.e. not one of `+-<>;:,;[]{}#`), followed by a series of operator calls delimited between `{` and `}`.
 
-OpLang supports single-line comments, introduced by `#`.
+OpLang supports single-line comments, introduced by the `#` character.
 
 Here's an example of a simple OpLang program:
 
@@ -41,7 +42,7 @@ a { ; +++ : }
 ```
 
 The above program defines a custom operator `a` that pops a value from the stack, adds 3 to it, then pushes it back onto the stack.
-The program's toplevel (i.e. `main()` function) initializes the first cell to 0, pushes it to the stack, then calls `a` 3 times, then pops the value from the stack and prints it.
+The program's top level (i.e. `main()` function) initializes the first cell to 4, pushes it to the stack, then calls `a` 3 times, then pops the value from the stack and prints it.
 
 For more sample programs, see the [Samples](Samples/) folder.
 
@@ -49,17 +50,16 @@ The recommended file extension for OpLang programs is `*.op`.
 
 ## Compiler Settings
 
-The compiler can be passed additional configuration via command-line arguments. In order to see the available options, run the compiler with the `-h` or `--help` argument.
+The compiler can be passed additional configuration via command-line arguments (for example, setting custom tape and stack sizes). In order to see the available options, run the compiler with the `-h` or `--help` argument.
 
 ## Compiler Internals
 
-The compiler works by translating `OpLang` code into C, then calling the system's C compiler (`cc`).
-The compiler also performs a series of optimizations on the code.
+The compiler works by translating `OpLang` code into C, then calling the system's C compiler (via `cc`).
+Before the conversion to C, a series of optimizations are performed, which are described below.
 
 ### Optimizations
 
 The compiler performs a series of optimizations on OpLang source code.
-Some of the optimizations are simply Brainfuck optimizations, which carry over to OpLang.
 
 Here's a list of the performed optimizations:
 
@@ -69,13 +69,9 @@ Multiple instructions of the same kind (e.g. + and -, or < and >) are merged int
 
 ```op
 +++ --- ++ => Add 2
-```
 
-```op
 > <<<< => Move -3
-```
 
-```op
 +++ --- => # Nothing
 ```
 
@@ -83,14 +79,11 @@ Multiple instructions of the same kind (e.g. + and -, or < and >) are merged int
 
 Cell zeroing is usually achieved by using `[-]`.
 The compiler recognizes this pattern, and transforms it into a single assignment.
-
-```op
-[-] => Set 0
-```
-
 Note that because cells can overflow, `[+]` achieves the same behavior.
 
 ```op
+[-] => Set 0
+
 [+] => Set 0
 ```
 
