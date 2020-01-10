@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module AST(Op(..), Body, Def, Name, Dict, incr, decr, movl, movr, pop, set0, calledOps) where
+module AST(Op(..), Body, Def, Name, Dict, DefList, incr, decr, movl, movr, pop, set0, calledOps) where
 
 import Data.Int(Int8)
 import Data.List(nub)
@@ -25,6 +25,7 @@ type Body = [Op]
 type Def = (Maybe Char, Body)
 type Name = Maybe Char
 type Dict = HashMap Name Body
+type DefList = [(Name, Body)]
 
 incr = Add 1
 decr = Add (-1)

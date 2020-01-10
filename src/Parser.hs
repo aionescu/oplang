@@ -2,14 +2,12 @@
 
 module Parser(Parser.parse) where
 
-import qualified Data.HashMap.Strict as HashMap
-
 import Data.Text(Text)
 import qualified Data.Text as T
 
 import Text.Parsec((<|>), anyChar, between, char, choice, endOfLine, eof, many, manyTill, noneOf, Parsec, runParser, space, skipMany, try)
 
-import AST(Op(..), Def, Dict, incr, decr, movl, movr, pop)
+import AST(Op(..), Def, DefList, incr, decr, movl, movr, pop)
 
 type Parser = Parsec Text ()
 
@@ -68,16 +66,16 @@ opDef = do
   char '}'
   pure $ (Just name, body)
 
-program :: Parser Dict
+program :: Parser DefList
 program = do
   justWs
   defs <- many $ try $ ws opDef
   topBody <- many $ ws op
   let topLevel = (Nothing, topBody)
   eof
-  pure $ HashMap.fromList (topLevel : defs)
+  pure (topLevel : defs)
 
-parse :: Text -> Either Text Dict
+parse :: Text -> Either Text DefList
 parse input =
   case runParser program () "" input of
     Left err -> Left $ T.pack $ show err
