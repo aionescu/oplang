@@ -21,11 +21,12 @@ data Op
   | OpCall Name
   | TailCall Name
 
-type Body = [Op]
-type Def = (Maybe Char, Body)
 type Name = Maybe Char
+type Body = [Op]
+type Def = (Name, Body)
+
+type DefList = [Def]
 type Dict = HashMap Name Body
-type DefList = [(Name, Body)]
 
 incr = Add 1
 decr = Add (-1)
