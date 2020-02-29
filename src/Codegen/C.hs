@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase, OverloadedStrings, RecordWildCards #-}
-
 module Codegen.C(compile) where
 
 import Data.Char(ord)

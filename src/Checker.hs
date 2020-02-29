@@ -1,9 +1,7 @@
-{-# LANGUAGE LambdaCase, OverloadedStrings #-}
-
 module Checker(check) where
 
 import Control.Monad(join)
-import Data.List((\\), filter, nub, null)
+import Data.List((\\), nub)
 import Data.Maybe(fromJust)
 
 import Data.Text(Text)

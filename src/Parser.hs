@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
-
 module Parser(Parser.parse) where
 
 import Data.Text(Text)

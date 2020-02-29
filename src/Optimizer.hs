@@ -31,12 +31,12 @@ optimizeOnce = go False []
       Pop a : Pop b : ops -> go True acc (Pop (a + b) : ops)
 
       Add _ : ops@(Read : _) -> go True acc ops
-      Add _ : ops@(Pop n : _) -> go True acc ops
-      Add _ : ops@(Set s : _) -> go True acc ops
+      Add _ : ops@(Pop _ : _) -> go True acc ops
+      Add _ : ops@(Set _ : _) -> go True acc ops
 
       Set _ : ops@(Read : _) -> go True acc ops
-      Set _ : ops@(Pop n : _) -> go True acc ops
-      Set _ : ops@(Set s : _) -> go True acc ops
+      Set _ : ops@(Pop _ : _) -> go True acc ops
+      Set _ : ops@(Set _ : _) -> go True acc ops
 
       Pop n : Push : ops -> go True acc (Pop (n - 1) : Peek : ops)
       Push : Pop n : ops -> go True acc (Pop (n - 1) : ops)

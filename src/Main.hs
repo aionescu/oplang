@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
-
 module Main(main) where
 
 import Data.Functor((<&>))

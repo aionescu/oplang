@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module AST(Op(..), Body, Def, Name, Dict, DefList, incr, decr, movl, movr, pop, set0, calledOps) where
 
 import Data.Int(Int8)
@@ -28,11 +26,22 @@ type Def = (Name, Body)
 type DefList = [Def]
 type Dict = HashMap Name Body
 
+incr :: Op
 incr = Add 1
+
+decr :: Op
 decr = Add (-1)
+
+movl :: Op
 movl = Move (-1)
+
+movr :: Op
 movr = Move 1
+
+pop :: Op
 pop = Pop 1
+
+set0 :: Op
 set0 = Set 0
 
 calledOps :: [Op] -> [Name]
