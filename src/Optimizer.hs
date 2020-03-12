@@ -17,7 +17,7 @@ optimizeOnce :: Body -> (Bool, Body)
 optimizeOnce = go False []
   where
     go :: Bool -> Body -> Body -> (Bool, Body)
-    go changed acc ops = case ops of
+    go changed acc ops' = case ops' of
       Add 0 : ops -> go True acc ops
       Move 0 : ops -> go True acc ops
       Pop 0 : ops -> go True acc ops
@@ -50,8 +50,8 @@ optimizeOnce = go False []
       l@(Loop _) : Loop _ : ops -> go True acc (l : ops)
       Loop [l@(Loop _)] : ops -> go True acc (l : ops)
       Loop l : ops ->
-        let (changed, l') = go False [] l
-        in go changed (Loop l' : acc) ops
+        let (changed', l') = go False [] l
+        in go changed' (Loop l' : acc) ops
 
       [OpCall c] -> go True acc [TailCall c]
       op : ops -> go changed (op : acc) ops

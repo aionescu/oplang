@@ -49,11 +49,11 @@ pipelinePure passes code =
 
 pipeline :: Opts -> IO ()
 pipeline opts@Opts{..} = do
-  either <-
+  result <-
     tryReadFile optsPath
     <&> pipelinePure optsOptPasses
 
-  case either of
+  case result of
     Left err -> T.putStrLn err
     Right code -> C.compile opts code
 

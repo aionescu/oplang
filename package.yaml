@@ -74,4 +74,3 @@ executables:
     
     - -Wall
     - -Wincomplete-uni-patterns
-    - -Wno-name-shadowing
