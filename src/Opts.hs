@@ -1,6 +1,9 @@
 module Opts(Opts(..), getOpts) where
 
-import Options.Applicative
+import Options.Applicative(
+  Parser, ParserInfo, auto, execParser, fullDesc,
+  header, help, helper, info, long, metavar, option,
+  progDesc, short, strArgument, strOption, value)
 
 data Opts = Opts {
   optsOptPasses :: Word,

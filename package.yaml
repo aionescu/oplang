@@ -28,6 +28,7 @@ dependencies:
 default-extensions:
 - ApplicativeDo
 - BangPatterns
+- BlockArguments
 - ConstraintKinds
 - DataKinds
 - DefaultSignatures
