@@ -16,7 +16,7 @@ illegalCalls :: Dict -> Body -> [Name]
 illegalCalls d body = nub $ filter (not . (`HashMap.member` d)) $ calledOps body
 
 illegalBodies :: Dict -> HashMap Name [Name]
-illegalBodies d = HashMap.filter (not . null) $ HashMap.map (illegalCalls d) d
+illegalBodies d = HashMap.filter (not . null) $ illegalCalls d <$> d
 
 errorMsgs :: HashMap Name [Name] -> HashMap Name [Text]
 errorMsgs d = HashMap.mapWithKey errorMsg d
