@@ -15,19 +15,15 @@ skip p = do
   pure ()
 
 comment :: Parser ()
-comment = do
+comment =
   char '#'
-  manyTill anyChar (skip endOfLine <|> eof)
-  pure ()
+  *> skip (manyTill anyChar (skip endOfLine <|> eof))
 
 justWs :: Parser ()
 justWs = skipMany (skip space <|> comment)
 
 ws :: Parser a -> Parser a
-ws p = do
-  r <- p
-  justWs  
-  pure r
+ws p = p <* justWs
 
 intrinsics :: String
 intrinsics = "+-<>,.;:"
