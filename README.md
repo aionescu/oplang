@@ -55,13 +55,10 @@ The compiler can be passed additional configuration via command-line arguments (
 ## Compiler Internals
 
 The compiler works by translating `OpLang` code into C, then calling the system's C compiler (via `cc`).
-Before the conversion to C, a series of optimizations are performed, which are described below.
 
 ### Optimizations
 
-The compiler performs a series of optimizations on OpLang source code.
-
-Here's a list of the performed optimizations:
+The compiler performs a series of optimizations on OpLang source code:
 
 #### Instruction Merging
 
