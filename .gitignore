@@ -1,6 +1,4 @@
-.stack-work/
-oplangc.cabal
-*~
+dist-newstyle
 
 *.c
 *.exe

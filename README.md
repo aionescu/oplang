@@ -2,6 +2,12 @@
 
 The compiler for `OpLang`, a stack-based esoteric programming language inspired by [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck).
 
+## Building from source
+
+In order to build the compiler, run `cabal new-build` in the repo's root directory. You will need `GHC` (The Haskell compiler) and `cabal-install` (The Haskell build tool), which you can download [here](https://www.haskell.org/platform/).
+
+You can then either install the package globally using `cabal install`, or run the local build with `cabal new-run`.
+
 ## OpLang Basics
 
 In short, OpLang (**Op**erator **Lang**uage) is an extended version of Brainfuck that supports defining custom operators, which use a stack for passing arguments and return values.
@@ -127,12 +133,6 @@ Instead of generating the following code for such structures: `Loop [Move 3, Add
 #### Tail Call Optimization*
 
 While not implementing full tail call optimization (due to using C as a backend, which does not support TCO), the compiler detects functions that are called in tail position and instead of allocating a new tape for them, it passes the caller's tape to the tail-called function (i.e. the caller and the callee share a single tape).
-
-## Building from source
-
-In order to build the compiler, simply run `stack build` in the repo's root directory. You will need the `Stack` build tool, which you can download [here](https://docs.haskellstack.org/en/stable/README/).
-
-Once built, run `stack run -- <args>` to run the compiler. (e.g. `stack run -- -o a.out code.op`)
 
 ## License
 
