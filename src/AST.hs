@@ -17,7 +17,7 @@ data Op
   | WithOffset Int Op
   | Loop [Op]
   | OpCall Name
-  | TailCall Name
+  | TailCall
 
 type Name = Maybe Char
 type Body = [Op]
@@ -37,12 +37,12 @@ set0 = Set 0
 write = Write 1
 
 
-calledOps :: [Op] -> [Name]
-calledOps = nub . go
+calledOps :: Def -> [Name]
+calledOps (name, ops) = nub $ go ops
   where
     go = \case
       OpCall c : rest -> c : go rest
-      TailCall c : rest -> c : go rest
+      TailCall : rest -> name : go rest
       Loop l : rest -> go l ++ go rest
       _ : rest -> go rest
       [] -> []

@@ -37,7 +37,7 @@ defaultStackSize :: Word
 defaultStackSize = 4096
 
 defaultTapeSize :: Word
-defaultTapeSize = defaultStackSize
+defaultTapeSize = 65536
 
 defaultOutPath :: String
 defaultOutPath = ""

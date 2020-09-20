@@ -10,13 +10,13 @@ import qualified Data.Text as T
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
-import AST(Dict, Body, Name, DefList, calledOps)
+import AST(Dict, Name, Def, DefList, calledOps)
 
-illegalCalls :: Dict -> Body -> [Name]
-illegalCalls d body = nub $ filter (not . (`HashMap.member` d)) $ calledOps body
+illegalCalls :: Dict -> Def -> [Name]
+illegalCalls d (name, body) = nub $ filter (not . (`HashMap.member` d)) $ calledOps name body
 
 illegalBodies :: Dict -> HashMap Name [Name]
-illegalBodies d = HashMap.filter (not . null) $ illegalCalls d <$> d
+illegalBodies d = HashMap.filter (not . null) $ HashMap.mapWithKey (curry $ illegalCalls d) d
 
 errorMsgs :: HashMap Name [Name] -> HashMap Name [Text]
 errorMsgs d = HashMap.mapWithKey errorMsg d

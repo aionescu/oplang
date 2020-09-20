@@ -132,7 +132,8 @@ Instead of generating the following code for such structures: `Loop [Move 3, Add
 
 #### Tail Call Optimization*
 
-While not implementing full tail call optimization (due to using C as a backend, which does not support TCO), the compiler detects functions that are called in tail position and instead of allocating a new tape for them, it passes the caller's tape to the tail-called function (i.e. the caller and the callee share a single tape).
+The compiler has very basic support for TCO: It is able to optimize recursive self-calls in tail position by converting them to a `goto` to the beginning of the function.
+For an example, see [this sample program](Samples/SO.op).
 
 ## License
 

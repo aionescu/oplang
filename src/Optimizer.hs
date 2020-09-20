@@ -4,17 +4,17 @@ import Data.List((\\), union)
 
 import qualified Data.HashMap.Strict as HashMap
 
-import AST(Op(..), Body, Dict, Name, set0, calledOps)
+import AST(Op(..), Body, Def, Dict, Name, set0, calledOps)
 
 canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False
 canDoWithOffset (Loop _) = False
 canDoWithOffset (OpCall _) = False
-canDoWithOffset (TailCall _) = False
+canDoWithOffset TailCall = False
 canDoWithOffset _ = True
 
-optimizeOnce :: Body -> (Bool, Body)
-optimizeOnce = go False []
+optimizeOnce :: Def -> (Bool, Body)
+optimizeOnce (name, body) = go False [] body
   where
     go :: Bool -> Body -> Body -> (Bool, Body)
     go changed acc ops' = case ops' of
@@ -54,32 +54,32 @@ optimizeOnce = go False []
         let (changed', l') = go False [] l
         in go changed' (Loop l' : acc) ops
 
-      [OpCall c] -> go True acc [TailCall c]
+      [OpCall c] | c == name -> go True acc [TailCall]
       op : ops -> go changed (op : acc) ops
       [] -> (changed, reverse acc)
   
-optimizeN :: Word -> Body -> Body
-optimizeN 0 ops = ops
-optimizeN n ops =
+optimizeN :: Word -> Def -> Body
+optimizeN 0 (_, ops) = ops
+optimizeN n (name, ops) =
   if changed
-  then optimizeN (n - 1) ops'
+  then optimizeN (n - 1) (name, ops')
   else ops'
 
   where
-    (changed, ops') = optimizeOnce ops
+    (changed, ops') = optimizeOnce (name, ops)
 
 removeSet0 :: Body -> Body
 removeSet0 (Set 0 : ops) = ops
 removeSet0 ops = ops
 
-optimizeOps :: Word -> Body -> Body
-optimizeOps passes ops = removeSet0 $ optimizeN passes (set0 : ops)
+optimizeOps :: Word -> Def -> Body
+optimizeOps passes (name, ops) = removeSet0 $ optimizeN passes (name, set0 : ops)
 
 callGraph :: Word -> Dict -> Dict -> [Name] -> Name -> Dict
 callGraph pass d acc toGo crr =
   let
-    body = optimizeOps pass $ d HashMap.! crr
-    called = calledOps body \\ [crr]
+    body = optimizeOps pass (crr, d HashMap.! crr)
+    called = calledOps crr body \\ [crr]
     newAcc = (HashMap.insert crr body acc)
   in
     case filter (not . (`HashMap.member` acc)) $ (toGo `union` called) of
