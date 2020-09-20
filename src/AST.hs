@@ -1,4 +1,4 @@
-module AST(Op(..), Body, Def, Name, Dict, DefList, incr, decr, movl, movr, pop, set0, calledOps) where
+module AST(Op(..), Body, Def, Name, Dict, DefList, incr, decr, movl, movr, pop, set0, write, calledOps) where
 
 import Data.Int(Int8)
 import Data.List(nub)
@@ -13,7 +13,7 @@ data Op
   | Push
   | Peek
   | Read
-  | Write
+  | Write Word
   | WithOffset Int Op
   | Loop [Op]
   | OpCall Name
@@ -26,23 +26,16 @@ type Def = (Name, Body)
 type DefList = [Def]
 type Dict = HashMap Name Body
 
-incr :: Op
+incr, decr, movl, movr, pop, set0, write :: Op
+
 incr = Add 1
-
-decr :: Op
 decr = Add (-1)
-
-movl :: Op
 movl = Move (-1)
-
-movr :: Op
 movr = Move 1
-
-pop :: Op
 pop = Pop 1
-
-set0 :: Op
 set0 = Set 0
+write = Write 1
+
 
 calledOps :: [Op] -> [Name]
 calledOps = nub . go

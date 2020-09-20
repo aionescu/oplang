@@ -29,6 +29,7 @@ optimizeOnce = go False []
       Add a : Add b : ops -> go True acc (Add (a + b) : ops)
       Move a : Move b : ops -> go True acc (Move (a + b) : ops)
       Pop a : Pop b : ops -> go True acc (Pop (a + b) : ops)
+      Write a : Write b : ops -> go True acc (Write (a + b) : ops)
 
       Add _ : ops@(Read : _) -> go True acc ops
       Add _ : ops@(Pop _ : _) -> go True acc ops

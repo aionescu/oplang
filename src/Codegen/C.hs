@@ -3,9 +3,12 @@ module Codegen.C(compile) where
 import Data.Char(ord)
 import Numeric(showHex)
 
+import Control.Monad(unless)
+
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Text(Text)
+import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
 import Text.Builder(Builder)
@@ -52,6 +55,9 @@ sign n
   | n < 0 = "-"
   | otherwise = "+"
 
+repeatText :: Word -> Text -> Builder
+repeatText n text = B.text $ T.concat $ replicate (fromIntegral n) text
+
 compileOp :: CCode -> Op -> CCode
 compileOp tape = \case
   Add n -> "*" <> tape <> sign n <> "=" <> showT (abs n) <> ";"
@@ -63,7 +69,8 @@ compileOp tape = \case
   WithOffset off op -> compileOp ("(" <> tape <> "+" <> showT off <> ")") op
   Loop ops -> "while(*t){" <> compileOps ops <> "}"
   Read -> "scanf(\"%c\"," <> tape <> ");"
-  Write -> "printf(\"%c\",*" <> tape <> ");"
+  Write 1 -> "printf(\"%c\",*" <> tape <> ");"
+  Write n -> "{char c=*" <> tape <> ";printf(\"" <> repeatText n "%c" <> "\"" <> repeatText n ",c" <> ");}"
   OpCall c -> "{char b[T];" <> cName c <> "(b);}"
   TailCall c -> cName c <> "(t);"
 
@@ -88,4 +95,6 @@ compile Opts{..} d = do
   T.writeFile cPath code
 
   system ("cc -o " <> optsOutPath <> " " <> cPath)
-  removeFile cPath
+
+  unless optsKeepCFile $
+    removeFile cPath

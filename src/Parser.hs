@@ -5,7 +5,7 @@ import qualified Data.Text as T
 
 import Text.Parsec((<|>), anyChar, between, char, choice, endOfLine, eof, many, manyTill, noneOf, Parsec, runParser, space, skipMany, try)
 
-import AST(Op(..), Def, DefList, incr, decr, movl, movr, pop)
+import AST(Op(..), Def, DefList, incr, decr, movl, movr, pop, write)
 
 type Parser = Parsec Text ()
 
@@ -32,16 +32,16 @@ reserved :: String
 reserved = intrinsics ++ "[]{}# \t\r\n"
 
 intrinsic :: Parser Op
-intrinsic = choice [incr', decr', movl', movr', read', write, pop', push]
+intrinsic = choice [incr', decr', movl', movr', read', write', pop', push']
   where
     incr' = incr <$ char '+'
     decr' = decr <$ char '-'
     movl' = movl <$ char '<'
     movr' = movr <$ char '>'
     read' = Read <$ char ','
-    write = Write <$ char '.'
+    write' = write <$ char '.'
     pop' = pop <$ char ';'
-    push = Push <$ char ':'
+    push' = Push <$ char ':'
 
 loop :: Parser Op
 loop = Loop <$> between (ws $ char '[') (char ']') (many $ ws op)
