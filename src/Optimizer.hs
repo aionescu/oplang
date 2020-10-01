@@ -79,7 +79,7 @@ callGraph :: Word -> Dict -> Dict -> [Name] -> Name -> Dict
 callGraph pass d acc toGo crr =
   let
     body = optimizeOps pass (crr, d HashMap.! crr)
-    called = calledOps crr body \\ [crr]
+    called = calledOps (crr, body) \\ [crr]
     newAcc = (HashMap.insert crr body acc)
   in
     case filter (not . (`HashMap.member` acc)) $ (toGo `union` called) of

@@ -13,7 +13,7 @@ import qualified Data.HashMap.Strict as HashMap
 import AST(Dict, Name, Def, DefList, calledOps)
 
 illegalCalls :: Dict -> Def -> [Name]
-illegalCalls d (name, body) = nub $ filter (not . (`HashMap.member` d)) $ calledOps name body
+illegalCalls d (name, body) = nub $ filter (not . (`HashMap.member` d)) $ calledOps (name, body)
 
 illegalBodies :: Dict -> HashMap Name [Name]
 illegalBodies d = HashMap.filter (not . null) $ HashMap.mapWithKey (curry $ illegalCalls d) d
