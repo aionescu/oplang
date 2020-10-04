@@ -1,4 +1,4 @@
-# oplangc
+# oplang
 
 The compiler for `OpLang`, a stack-based esoteric programming language inspired by [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck).
 

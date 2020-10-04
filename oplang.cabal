@@ -1,11 +1,11 @@
 cabal-version:       >=2.0
 
-name:                oplangc
+name:                oplang
 version:             0.1.0.0
 synopsis:            Compiler for OpLang, an esoteric programming language
-description:         Please see the README on GitHub at <https://github.com/aionescu/oplangc#readme>
-homepage:            https://github.com/aionescu/oplangc#readme
-bug-reports:         https://github.com/aionescu/oplangc/issues
+description:         Please see the README on GitHub at <https://github.com/aionescu/oplang#readme>
+homepage:            https://github.com/aionescu/oplang#readme
+bug-reports:         https://github.com/aionescu/oplang/issues
 license:             MIT
 license-file:        LICENSE.txt
 author:              Alex Ionescu
@@ -17,9 +17,9 @@ extra-source-files:  README.md
 
 source-repository head
   type: git
-  location: https://github.com/aionescu/oplangc
+  location: https://github.com/aionescu/oplang
 
-executable oplangc
+executable oplang
   main-is: Main.hs
 
   other-modules:
@@ -30,7 +30,7 @@ executable oplangc
     Language.OpLang.Optimizer
     Language.OpLang.Opts
     Language.OpLang.Parser
-    Paths_oplangc
+    Paths_oplang
 
   hs-source-dirs: src
 

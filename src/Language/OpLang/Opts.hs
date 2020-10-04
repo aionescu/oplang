@@ -29,7 +29,7 @@ optsParser =
     (helper <*> programOptions)
     (fullDesc
       <> progDesc "Compiles an OpLang source file to a native executable."
-      <> header "oplangc - The OpLang Compiler")
+      <> header "oplang - The OpLang Compiler")
 
   where
     programOptions :: Parser Opts
