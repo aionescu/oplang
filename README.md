@@ -1,12 +1,14 @@
 # oplang
 
-The compiler for `OpLang`, a stack-based esoteric programming language inspired by [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck).
+This repository contains the compiler for `OpLang`, a stack-based esoteric programming language based on [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck).
 
-## Building from source
+## Installing
 
-In order to build the compiler, run `cabal new-build` in the repo's root directory. You will need `GHC` (The Haskell compiler) and `cabal-install` (The Haskell build tool), which you can download [here](https://www.haskell.org/platform/).
+To build the compiler yourself, you will need the Haskell Platform, which can be found [here](https://www.haskell.org/platform/). 
 
-You can then either install the package globally using `cabal install`, or run the local build with `cabal new-run`.
+To build, run `cabal new-build` in the root of the repository.
+
+You can then either install the package globally running `cabal install`, or run the local build with `cabal new-run`.
 
 ## OpLang Basics
 
