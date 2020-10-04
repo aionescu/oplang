@@ -23,13 +23,13 @@ executable oplangc
   main-is: Main.hs
 
   other-modules:
-    AST
-    Checker
-    Codegen.C
-    Codegen.LLVM
-    Optimizer
-    Opts
-    Parser
+    Language.OpLang.AST
+    Language.OpLang.Checker
+    Language.OpLang.Codegen.C
+    Language.OpLang.Codegen.LLVM
+    Language.OpLang.Optimizer
+    Language.OpLang.Opts
+    Language.OpLang.Parser
     Paths_oplangc
 
   hs-source-dirs: src

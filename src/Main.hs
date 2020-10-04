@@ -7,13 +7,13 @@ import qualified Data.Text.IO as T
 import System.FilePath(dropExtension)
 import System.Info(os)
 
-import Parser(parse)
-import Checker(check)
-import Optimizer(optimize)
-import Opts(Opts(..), getOpts)
-import AST(Dict)
+import Language.OpLang.Parser(parse)
+import Language.OpLang.Checker(check)
+import Language.OpLang.Optimizer(optimize)
+import Language.OpLang.Opts(Opts(..), getOpts)
+import Language.OpLang.AST(Dict)
 
-import qualified Codegen.C as C
+import qualified Language.OpLang.Codegen.C as C
 -- import qualified Codegen.LLVM as LLVM
 
 tryReadFile :: String -> IO (Either Text Text)

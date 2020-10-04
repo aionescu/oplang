@@ -1,4 +1,4 @@
-module Codegen.C(compile) where
+module Language.OpLang.Codegen.C(compile) where
 
 import Data.Char(ord)
 import Numeric(showHex)
@@ -18,8 +18,8 @@ import System.Directory(removeFile)
 import System.FilePath(dropExtension)
 import System.Process(system)
 
-import AST(Op(..), Name, Body, Dict)
-import Opts(Opts(..))
+import Language.OpLang.AST(Op(..), Name, Body, Dict)
+import Language.OpLang.Opts(Opts(..))
 
 type CCode = Builder
 

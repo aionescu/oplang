@@ -1,4 +1,4 @@
-module AST(Op(..), Body, Def, Name, Dict, DefList, incr, decr, movl, movr, pop, set0, write, calledOps) where
+module Language.OpLang.AST(Op(..), Body, Def, Name, Dict, DefList, incr, decr, movl, movr, pop, set0, write, calledOps) where
 
 import Data.Int(Int8)
 import Data.List(nub)

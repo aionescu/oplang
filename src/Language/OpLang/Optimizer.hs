@@ -1,10 +1,10 @@
-module Optimizer(optimize) where
+module Language.OpLang.Optimizer(optimize) where
 
 import Data.List((\\), union)
 
 import qualified Data.HashMap.Strict as HashMap
 
-import AST(Op(..), Body, Def, Dict, Name, set0, calledOps)
+import Language.OpLang.AST(Op(..), Body, Def, Dict, Name, set0, calledOps)
 
 canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False

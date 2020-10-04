@@ -1,4 +1,4 @@
-module Checker(check) where
+module Language.OpLang.Checker(check) where
 
 import Control.Monad(join)
 import Data.List((\\), nub)
@@ -10,7 +10,7 @@ import qualified Data.Text as T
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
 
-import AST(Dict, Name, Def, DefList, calledOps)
+import Language.OpLang.AST(Dict, Name, Def, DefList, calledOps)
 
 illegalCalls :: Dict -> Def -> [Name]
 illegalCalls d (name, body) = nub $ filter (not . (`HashMap.member` d)) $ calledOps (name, body)
