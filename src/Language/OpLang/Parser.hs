@@ -3,9 +3,9 @@ module Language.OpLang.Parser(parse) where
 import Data.Text(Text)
 import qualified Data.Text as T
 
-import Text.Parsec((<|>), anyChar, between, char, choice, endOfLine, eof, many, manyTill, noneOf, Parsec, runParser, space, skipMany, try)
+import Text.Parsec hiding (parse)
 
-import Language.OpLang.AST(Op(..), Def, DefList, incr, decr, movl, movr, pop, write)
+import Language.OpLang.AST
 
 type Parser = Parsec Text ()
 

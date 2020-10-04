@@ -1,4 +1,4 @@
-module Language.OpLang.AST(Op(..), Body, Def, Name, Dict, DefList, incr, decr, movl, movr, pop, set0, write, calledOps) where
+module Language.OpLang.AST where
 
 import Data.Int(Int8)
 import Data.List(nub)
@@ -35,7 +35,6 @@ movr = Move 1
 pop = Pop 1
 set0 = Set 0
 write = Write 1
-
 
 calledOps :: Def -> [Name]
 calledOps (name, ops) = nub $ go ops

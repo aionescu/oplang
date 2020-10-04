@@ -1,25 +1,6 @@
 module Language.OpLang.Opts(Opts(..), getOpts) where
 
 import Options.Applicative
-  ( Parser
-  , ParserInfo
-  , auto
-  , execParser
-  , fullDesc
-  , header
-  , help
-  , helper
-  , info
-  , long
-  , metavar
-  , option
-  , progDesc
-  , short
-  , strArgument
-  , strOption
-  , switch
-  , value
-  )
 
 data Opts = Opts {
   optsOptPasses :: Word,

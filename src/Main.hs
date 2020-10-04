@@ -7,11 +7,11 @@ import qualified Data.Text.IO as T
 import System.FilePath(dropExtension)
 import System.Info(os)
 
-import Language.OpLang.Parser(parse)
-import Language.OpLang.Checker(check)
-import Language.OpLang.Optimizer(optimize)
-import Language.OpLang.Opts(Opts(..), getOpts)
-import Language.OpLang.AST(Dict)
+import Language.OpLang.Parser
+import Language.OpLang.Checker
+import Language.OpLang.Optimizer
+import Language.OpLang.Opts
+import Language.OpLang.AST
 
 import qualified Language.OpLang.Codegen.C as C
 -- import qualified Codegen.LLVM as LLVM
