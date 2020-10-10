@@ -15,17 +15,6 @@ import Language.OpLang.AST
 
 import qualified Language.OpLang.Codegen.C as C
 
-tryReadFile :: String -> IO (Either Text Text)
-tryReadFile path = do
-  exists <- doesFileExist path
-
-  if exists
-  then do
-    f <- T.readFile path
-    pure $ Right f
-  else
-    pure $ Left $ "Error: File '" <> pack path <> "' not found."
-
 getOutPath :: String -> String
 getOutPath file = dropExtension file ++ ext
   where
@@ -36,8 +25,16 @@ getOutPath file = dropExtension file ++ ext
 changeOutPath :: Opts -> Opts
 changeOutPath opts =
   case optsOutPath opts of
-    "" -> opts { optsOutPath = getOutPath (optsPath opts) }
+    "" -> opts { optsOutPath = getOutPath $ optsPath opts }
     _ -> opts
+
+tryReadFile :: String -> IO (Either Text Text)
+tryReadFile path = do
+  exists <- doesFileExist path
+
+  if exists
+  then Right <$> T.readFile path
+  else pure $ Left $ "Error: File '" <> pack path <> "' not found."
 
 pipeline :: Word -> Either Text Text -> Either Text Dict
 pipeline passes code =
@@ -47,14 +44,10 @@ pipeline passes code =
   <&> optimize passes
 
 runCompiler :: Opts -> IO ()
-runCompiler opts@Opts{..} = do
-  result <-
-    tryReadFile optsPath
-    <&> pipeline optsOptPasses
-
-  case result of
-    Left err -> T.putStrLn err
-    Right defs -> C.compile opts defs
+runCompiler opts@Opts{..} =
+  tryReadFile optsPath
+  <&> pipeline optsOptPasses
+  >>= either T.putStrLn (C.compile opts)
 
 main :: IO ()
 main = runCompiler . changeOutPath =<< getOpts

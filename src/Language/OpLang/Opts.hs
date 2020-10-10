@@ -2,15 +2,16 @@ module Language.OpLang.Opts(Opts(..), getOpts) where
 
 import Options.Applicative
 
-data Opts = Opts {
-  optsOptPasses :: Word,
-  optsStackSize :: Word,
-  optsTapeSize :: Word,
-  optsKeepCFile :: Bool,
-  optsCCPath :: String,
-  optsOutPath :: String,
-  optsPath :: String
-} deriving Show
+data Opts =
+  Opts
+  { optsOptPasses :: Word
+  , optsStackSize :: Word
+  , optsTapeSize :: Word
+  , optsKeepCFile :: Bool
+  , optsCCPath :: String
+  , optsOutPath :: String
+  , optsPath :: String
+  }
 
 defaultOptPasses :: Word
 defaultOptPasses = 64
