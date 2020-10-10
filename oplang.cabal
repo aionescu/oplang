@@ -26,7 +26,6 @@ executable oplang
     Language.OpLang.AST
     Language.OpLang.Checker
     Language.OpLang.Codegen.C
-    Language.OpLang.Codegen.LLVM
     Language.OpLang.Optimizer
     Language.OpLang.Opts
     Language.OpLang.Parser
