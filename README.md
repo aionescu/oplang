@@ -1,10 +1,12 @@
 # oplang
 
+[![Hackage](https://img.shields.io/hackage/v/oplang?style=for-the-badge)](https://hackage.haskell.org/package/oplang)
+
 This repository contains the compiler for `OpLang`, a stack-based esoteric programming language based on [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck).
 
 ## Installing
 
-To build the compiler yourself, you will need the Haskell Platform, which can be found [here](https://www.haskell.org/platform/). 
+To build the compiler yourself, you will need the Haskell Platform, which can be found [here](https://www.haskell.org/platform/).
 
 To build, run `cabal new-build` in the root of the repository.
 
