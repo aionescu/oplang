@@ -14,7 +14,6 @@ import Language.OpLang.Opts
 import Language.OpLang.AST
 
 import qualified Language.OpLang.Codegen.C as C
--- import qualified Codegen.LLVM as LLVM
 
 tryReadFile :: String -> IO (Either Text Text)
 tryReadFile path = do
@@ -24,7 +23,7 @@ tryReadFile path = do
   then do
     f <- T.readFile path
     pure $ Right f
-  else 
+  else
     pure $ Left $ "Error: File '" <> pack path <> "' not found."
 
 getOutPath :: String -> String
@@ -40,24 +39,22 @@ changeOutPath opts =
     "" -> opts { optsOutPath = getOutPath (optsPath opts) }
     _ -> opts
 
-pipelinePure :: Word -> Either Text Text -> Either Text Dict
-pipelinePure passes code =
+pipeline :: Word -> Either Text Text -> Either Text Dict
+pipeline passes code =
   code
   >>= parse
   >>= check
   <&> optimize passes
 
-pipeline :: Opts -> IO ()
-pipeline opts@Opts{..} = do
+runCompiler :: Opts -> IO ()
+runCompiler opts@Opts{..} = do
   result <-
     tryReadFile optsPath
-    <&> pipelinePure optsOptPasses
+    <&> pipeline optsOptPasses
 
   case result of
     Left err -> T.putStrLn err
-    Right code -> C.compile opts code
+    Right defs -> C.compile opts defs
 
 main :: IO ()
-main = do
-  opts <- getOpts
-  pipeline $ changeOutPath opts
+main = runCompiler . changeOutPath =<< getOpts
