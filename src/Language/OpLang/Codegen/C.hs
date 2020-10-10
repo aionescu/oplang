@@ -45,7 +45,7 @@ compileDef :: Name -> Body -> CCode
 compileDef name body = "void " <> cName name <> "(){char t_[T],*t;l:t=t_;memset(t,0,T);" <> compileOps name body <> "}"
 
 compileMain :: Body -> CCode
-compileMain body = "int main(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps Nothing body <> "return 0;}" 
+compileMain body = "int main(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps Nothing body <> "return 0;}"
 
 compileOps :: Name -> [Op] -> CCode
 compileOps name ops = mconcat $ compileOp name "t" <$> ops
@@ -87,6 +87,9 @@ codegen stackSize tapeSize d =
 cFile :: String -> String
 cFile file = dropExtension file <> ".c"
 
+quote :: String -> String
+quote s = '"' : (s <> "\"")
+
 compile :: Opts -> Dict -> IO ()
 compile Opts{..} d = do
   let cPath = cFile optsPath
@@ -94,7 +97,7 @@ compile Opts{..} d = do
 
   T.writeFile cPath code
 
-  system ("cc -o " <> optsOutPath <> " " <> cPath)
+  system $ quote optsCCPath <> " -o " <> quote optsOutPath <> " " <> quote cPath
 
   unless optsKeepCFile $
     removeFile cPath
