@@ -3,20 +3,20 @@ cradle:
     - path: "src/Main.hs"
       component: "oplang:exe:oplang"
 
-    - path: "src/Language.OpLang.AST.hs"
+    - path: "src/Language/OpLang/AST.hs"
       component: "oplang:exe:oplang"
 
-    - path: "src/Language.OpLang.Checker.hs"
+    - path: "src/Language/OpLang/Checker.hs"
       component: "oplang:exe:oplang"
 
-    - path: "src/Language.OpLang.Codegen.C.hs"
+    - path: "src/Language/OpLang/Codegen/C.hs"
       component: "oplang:exe:oplang"
 
-    - path: "src/Language.OpLang.Optimizer.hs"
+    - path: "src/Language/OpLang/Optimizer.hs"
       component: "oplang:exe:oplang"
 
-    - path: "src/Language.OpLang.Opts.hs"
+    - path: "src/Language/OpLang/Opts.hs"
       component: "oplang:exe:oplang"
 
-    - path: "src/Language.OpLang.Parser.hs"
+    - path: "src/Language/OpLang/Parser.hs"
       component: "oplang:exe:oplang"
