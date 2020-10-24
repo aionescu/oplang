@@ -1,76 +1,54 @@
 module Language.OpLang.Parser(parse) where
 
 import Data.Text(Text)
-import qualified Data.Text as T
-
+import Data.Functor(($>))
+import Control.Applicative(liftA2)
 import Text.Parsec hiding (parse)
 
 import Language.OpLang.AST
 
 type Parser = Parsec Text ()
 
-skip :: Parser a -> Parser ()
-skip p = do
-  p
-  pure ()
-
 comment :: Parser ()
-comment =
-  char '#'
-  *> skip (manyTill anyChar (skip endOfLine <|> eof))
+comment = char '#' *> manyTill anyChar (endOfLine $> () <|> eof) $> ()
 
-justWs :: Parser ()
-justWs = skipMany (skip space <|> comment)
-
-ws :: Parser a -> Parser a
-ws p = p <* justWs
-
-intrinsics :: String
-intrinsics = "+-<>,.;:"
-
-reserved :: String
-reserved = intrinsics ++ "[]{}# \t\r\n"
+ws :: Parser ()
+ws = spaces *> skipMany (comment *> spaces)
 
 intrinsic :: Parser Op
-intrinsic = choice [incr', decr', movl', movr', read', write', pop', push']
-  where
-    incr' = incr <$ char '+'
-    decr' = decr <$ char '-'
-    movl' = movl <$ char '<'
-    movr' = movr <$ char '>'
-    read' = Read <$ char ','
-    write' = write <$ char '.'
-    pop' = pop <$ char ';'
-    push' = Push <$ char ':'
+intrinsic = choice
+  [ char '+' $> Add 1
+  , char '-' $> Add (-1)
+  , char '<' $> Move (-1)
+  , char '>' $> Move 1
+  , char ',' $> Read
+  , char '.' $> Write 1
+  , char ';' $> Pop 1
+  , char ':' $> Push
+  ]
+
+block :: Char -> Char -> Parser [Op]
+block b e = between (char b *> ws) (char e *> ws) $ many (op <* ws)
 
 loop :: Parser Op
-loop = Loop <$> between (ws $ char '[') (char ']') (many $ ws op)
+loop = Loop <$> block '[' ']'
 
 custom :: Parser Char
 custom = noneOf reserved
+  where
+    reserved = "+-<>,.;:[]{}# \t\r\n"
 
 op :: Parser Op
-op = choice [intrinsic, loop, (OpCall . Just) <$> custom]
+op = choice [try loop, intrinsic, (OpCall . Just) <$> custom]
 
-opDef :: Parser Def
-opDef = do
-  name <- ws custom
-  ws $ char '{'
-  body <- many $ ws op
-  char '}'
-  pure $ (Just name, body)
+def :: Parser Def
+def = liftA2 ((,) . Just) (custom <* ws) (block '{' '}')
+
+topLevel :: Parser Def
+topLevel = (Nothing,) <$> many (op <* ws)
 
 program :: Parser DefList
-program = do
-  justWs
-  defs <- many $ try $ ws opDef
-  topBody <- many $ ws op
-  let topLevel = (Nothing, topBody)
-  eof
-  pure (topLevel : defs)
+program = ws *> liftA2 (flip (:)) (many $ try def) topLevel <* eof
 
-parse :: Text -> Either Text DefList
-parse input =
-  case runParser program () "" input of
-    Left err -> Left $ T.pack $ show err
-    Right p -> Right p
+parse :: Text -> OpLang DefList
+parse = toOpLang . runParser program () ""

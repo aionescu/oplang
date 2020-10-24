@@ -1,10 +1,12 @@
 module Language.OpLang.Optimizer(optimize) where
 
 import Data.List((\\), union)
-
-import qualified Data.HashMap.Strict as HashMap
+import qualified Data.HashMap.Strict as HM
 
 import Language.OpLang.AST
+
+set0 :: Op
+set0 = Set 0
 
 canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False
@@ -42,7 +44,7 @@ optimizeOnce (name, body) = go False [] body
       Pop n : Push : ops -> go True acc (Pop (n - 1) : Peek : ops)
       Push : Pop n : ops -> go True acc (Pop (n - 1) : ops)
 
-      Move m : op : Move n : ops 
+      Move m : op : Move n : ops
         | canDoWithOffset op && m == -n -> case op of
             WithOffset o op' -> go True acc (WithOffset (m + o) op' : ops)
             _ -> go True acc (WithOffset m op : ops)
@@ -57,7 +59,7 @@ optimizeOnce (name, body) = go False [] body
       [OpCall c] | c == name -> go True acc [TailCall]
       op : ops -> go changed (op : acc) ops
       [] -> (changed, reverse acc)
-  
+
 optimizeN :: Word -> Def -> Body
 optimizeN 0 (_, ops) = ops
 optimizeN n (name, ops) =
@@ -76,17 +78,16 @@ optimizeOps :: Word -> Def -> Body
 optimizeOps passes (name, ops) = removeSet0 $ optimizeN passes (name, set0 : ops)
 
 callGraph :: Word -> Dict -> Dict -> [Name] -> Name -> Dict
-callGraph pass d acc toGo crr =
+callGraph pass defs acc toGo crr =
   let
-    body = optimizeOps pass (crr, d HashMap.! crr)
+    body = optimizeOps pass (crr, defs HM.! crr)
     called = calledOps (crr, body) \\ [crr]
-    newAcc = (HashMap.insert crr body acc)
+    newAcc = (HM.insert crr body acc)
   in
-    case filter (not . (`HashMap.member` acc)) $ (toGo `union` called) of
+    case filter (not . (`HM.member` acc)) $ (toGo `union` called) of
       [] -> newAcc
       (next : nexts) ->
-        callGraph pass d newAcc nexts next
+        callGraph pass defs newAcc nexts next
 
 optimize :: Word -> Dict -> Dict
-optimize passes d =
-  callGraph passes d HashMap.empty [] Nothing
+optimize passes defs = callGraph passes defs HM.empty [] Nothing

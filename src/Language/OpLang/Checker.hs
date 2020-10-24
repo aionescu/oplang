@@ -1,51 +1,50 @@
 module Language.OpLang.Checker(check) where
 
-import Control.Monad(join)
+import Control.Monad((<=<), join)
 import Data.List((\\), nub)
 import Data.Maybe(fromJust)
-
-import Data.Text(Text)
-import qualified Data.Text as T
+import Text.Printf(printf)
 
 import Data.HashMap.Strict(HashMap)
-import qualified Data.HashMap.Strict as HashMap
+import qualified Data.HashMap.Strict as HM
 
-import Language.OpLang.AST(Dict, Name, Def, DefList, calledOps)
+import Language.OpLang.AST(mapLeft, err, OpLang, Dict, Name, Def, DefList, calledOps)
 
-illegalCalls :: Dict -> Def -> [Name]
-illegalCalls d (name, body) = nub $ filter (not . (`HashMap.member` d)) $ calledOps (name, body)
+data Error
+  = DuplicateDefinition Char
+  | UndefinedCall Name Char
 
-illegalBodies :: Dict -> HashMap Name [Name]
-illegalBodies d = HashMap.filter (not . null) $ HashMap.mapWithKey (curry $ illegalCalls d) d
+instance Show Error where
+  show = printf "Error: %s." . go
+    where
+      go :: Error -> String
+      go (DuplicateDefinition op) = printf "Duplicate definition of operator '%c'" op
+      go (UndefinedCall caller callee) = printf "Call to undefined operator '%c' in %s" callee $ fmtName caller
 
-errorMsgs :: HashMap Name [Name] -> HashMap Name [Text]
-errorMsgs d = HashMap.mapWithKey errorMsg d
+      fmtName :: Name -> String
+      fmtName = maybe "top level" (printf "body of '%c'")
+
+type Check a = Either [Error] a
+
+checkDuplicateDefs :: DefList -> Check Dict
+checkDuplicateDefs defs =
+  case names \\ nub names of
+    [] -> pure $ HM.fromList defs
+    duplicates -> err $ DuplicateDefinition . fromJust <$> nub duplicates
   where
-    errorMsg name ops = errorMsg1 name <$> ops
-    errorMsg1 name op = "Error: Call to undefined operator '" <> T.singleton (fromJust op) <> "' in " <> fromName name <> "."
+    names = fst <$> defs
 
-    fromName Nothing = "top level"
-    fromName (Just n) = "body of '" <> T.singleton n <> T.singleton '\''
+checkUndefinedCalls :: Dict -> Check Dict
+checkUndefinedCalls defs =
+  if HM.null undefinedOps
+    then pure defs
+    else err $ join $ HM.elems $ HM.mapWithKey (\k ns -> UndefinedCall k . fromJust <$> ns) undefinedOps
+  where
+    undefinedOps ::HashMap Name [Name]
+    undefinedOps = HM.filter (not . null) $ HM.mapWithKey (curry undefinedCalls) defs
 
-checkDups :: DefList -> Either Text Dict
-checkDups l =
-  let
-    l' = fst <$> l
-    uniq = nub l'
-    toMsg a = "Error: Duplicate definition of operator '" <> T.singleton a <> "'."
-    concatDups = T.intercalate "\n" . map (toMsg . fromJust)
-  in
-    case l' \\ uniq of
-      [] -> Right $ HashMap.fromList l
-      dups -> Left $ concatDups $ nub dups
+    undefinedCalls :: Def -> [Name]
+    undefinedCalls def = nub $ filter (not . (`HM.member` defs)) $ calledOps def
 
-checkUndefs :: Dict -> Either Text Dict
-checkUndefs d =
-  let msgs = join $ HashMap.elems $ errorMsgs $ illegalBodies d
-  in
-    case msgs of
-      [] -> Right d
-      l -> Left (T.intercalate "\n" l)
-
-check :: DefList -> Either Text Dict
-check dl = checkDups dl >>= checkUndefs
+check :: DefList -> OpLang Dict
+check = mapLeft (unlines . (show <$>)) . (checkUndefinedCalls <=< checkDuplicateDefs)

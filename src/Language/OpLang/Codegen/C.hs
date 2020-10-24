@@ -2,14 +2,13 @@ module Language.OpLang.Codegen.C(compile) where
 
 import Data.Char(ord)
 import Numeric(showHex)
-
 import Control.Monad(unless)
 
-import qualified Data.HashMap.Strict as HashMap
+import qualified Data.HashMap.Strict as HM
 
 import Data.Text(Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.IO as T.IO
 
 import Text.Builder(Builder)
 import qualified Text.Builder as B
@@ -23,23 +22,22 @@ import Language.OpLang.Opts(Opts(..))
 
 type CCode = Builder
 
-showT :: Show a => a -> CCode
-showT = B.string . show
+showC :: Show a => a -> CCode
+showC = B.string . show
 
 cName :: Name -> CCode
-cName Nothing = "main"
-cName (Just name) = "o" <> B.string (showHex (ord name) "")
+cName = maybe "main" \n -> "o" <> B.string (showHex (ord n) "")
 
 programPrologue :: Word -> Word -> CCode
 programPrologue stackSize tapeSize =
   "#include<stdio.h>\n#include<string.h>\n#define S "
-  <> showT stackSize
+  <> showC stackSize
   <> "\n#define T "
-  <> showT tapeSize
+  <> showC tapeSize
   <> "\nchar s_[S],*s=s_;"
 
 compileProto :: Name -> Body -> CCode
-compileProto name _ = "void " <> cName name <> "();"
+compileProto name _body = "void " <> cName name <> "();"
 
 compileDef :: Name -> Body -> CCode
 compileDef name body = "void " <> cName name <> "(){char t_[T],*t;l:t=t_;memset(t,0,T);" <> compileOps name body <> "}"
@@ -56,17 +54,17 @@ sign n
   | otherwise = "+"
 
 repeatText :: Word -> Text -> CCode
-repeatText n text = B.text $ T.concat $ replicate (fromIntegral n) text
+repeatText n = B.text . T.concat . replicate (fromIntegral n)
 
 compileOp :: Name -> CCode -> Op -> CCode
 compileOp name tape = \case
-  Add n -> "*" <> tape <> sign n <> "=" <> showT (abs n) <> ";"
-  Move n -> tape <> sign n <> "=" <> showT (abs n) <> ";"
-  Set n -> "*" <> tape <> "=" <> showT n <> ";"
-  Pop n -> "*" <> tape <> "=*(s-=" <> showT n <> ");"
+  Add n -> "*" <> tape <> sign n <> "=" <> showC (abs n) <> ";"
+  Move n -> tape <> sign n <> "=" <> showC (abs n) <> ";"
+  Set n -> "*" <> tape <> "=" <> showC n <> ";"
+  Pop n -> "*" <> tape <> "=*(s-=" <> showC n <> ");"
   Push -> "*(s++)=*" <> tape <> ";"
   Peek -> "*" <> tape <> "=*(s-1);"
-  WithOffset off op -> compileOp name ("(" <> tape <> "+" <> showT off <> ")") op
+  WithOffset off op -> compileOp name ("(" <> tape <> "+" <> showC off <> ")") op
   Loop ops -> "while(*t){" <> compileOps name ops <> "}"
   Read -> "scanf(\"%c\"," <> tape <> ");"
   Write 1 -> "printf(\"%c\",*" <> tape <> ");"
@@ -75,14 +73,14 @@ compileOp name tape = \case
   TailCall -> "goto l;"
 
 codegen :: Word -> Word -> Dict -> Text
-codegen stackSize tapeSize d =
-  let d' = HashMap.delete Nothing d
-  in
-    B.run
+codegen stackSize tapeSize defs =
+  B.run
     $ programPrologue stackSize tapeSize
-    <> mconcat (HashMap.elems . HashMap.mapWithKey compileProto $ d')
-    <> mconcat (HashMap.elems . HashMap.mapWithKey compileDef $ d')
-    <> compileMain (d HashMap.! Nothing)
+    <> mconcat (HM.elems $ HM.mapWithKey compileProto $ defs')
+    <> mconcat (HM.elems $ HM.mapWithKey compileDef $ defs')
+    <> compileMain (defs HM.! Nothing)
+  where
+    defs' = HM.delete Nothing defs
 
 cFile :: String -> String
 cFile file = dropExtension file <> ".c"
@@ -95,8 +93,7 @@ compile Opts{..} d = do
   let cPath = cFile optsPath
   let code = codegen optsStackSize optsTapeSize d
 
-  T.writeFile cPath code
-
+  T.IO.writeFile cPath code
   system $ quote optsCCPath <> " -o " <> quote optsOutPath <> " " <> quote cPath
 
   unless optsKeepCFile $
