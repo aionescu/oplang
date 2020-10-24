@@ -4,7 +4,7 @@
 
 # Name      : Lost Kingdom v011
 # Author    : Jon Ripley
-# Purpose   : Enchanced Brainfuck Edition of the original BBC BASIC game 
+# Purpose   : Enchanced Brainfuck Edition of the original BBC BASIC game
 # Date      : Sun 12 Jun 2005 16:13:28
 # Copyright : (C) Jon Ripley 2004 2005
 # Email     : jon(at)jonripley(dot)com
