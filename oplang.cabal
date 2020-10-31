@@ -6,7 +6,7 @@ synopsis: Compiler for OpLang, an esoteric programming language
 description: Please see the README on GitHub at <https://github.com/aionescu/oplang#readme>
 homepage: https://github.com/aionescu/oplang#readme
 bug-reports: https://github.com/aionescu/oplang/issues
-license: MIT
+license: GPL-3
 license-file: LICENSE.txt
 author: Alex Ionescu
 maintainer: alxi.2001@gmail.com
@@ -29,7 +29,6 @@ executable oplang
     Language.OpLang.Optimizer
     Language.OpLang.Codegen.C
     Language.OpLang.Opts
-    Language.OpLang.Parser
     Paths_oplang
 
   autogen-modules:
