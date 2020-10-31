@@ -24,9 +24,10 @@ executable oplang
 
   other-modules:
     Language.OpLang.AST
+    Language.OpLang.Parser
     Language.OpLang.Checker
-    Language.OpLang.Codegen.C
     Language.OpLang.Optimizer
+    Language.OpLang.Codegen.C
     Language.OpLang.Opts
     Language.OpLang.Parser
     Paths_oplang
