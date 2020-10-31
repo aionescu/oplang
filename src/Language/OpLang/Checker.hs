@@ -9,7 +9,7 @@ import Text.Printf(printf)
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HM
 
-import Language.OpLang.AST(err, OpLang, Dict, Name, Def, DefList, calledOps)
+import Language.OpLang.Syntax(err, OpLang, Dict, Name, Def, DefList, calledOps)
 
 data Error
   = DuplicateDefinition Char

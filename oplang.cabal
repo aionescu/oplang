@@ -23,7 +23,7 @@ executable oplang
   main-is: Main.hs
 
   other-modules:
-    Language.OpLang.AST
+    Language.OpLang.Syntax
     Language.OpLang.Parser
     Language.OpLang.Checker
     Language.OpLang.Optimizer

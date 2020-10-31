@@ -3,7 +3,7 @@ cradle:
     - path: "src/Main.hs"
       component: "oplang:exe:oplang"
 
-    - path: "src/Language/OpLang/AST.hs"
+    - path: "src/Language/OpLang/Syntax.hs"
       component: "oplang:exe:oplang"
 
     - path: "src/Language/OpLang/Parser.hs"

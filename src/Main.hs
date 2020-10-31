@@ -7,7 +7,7 @@ import qualified Data.Text.IO as T
 import System.FilePath(dropExtension)
 import System.Info(os)
 
-import Language.OpLang.AST
+import Language.OpLang.Syntax
 import Language.OpLang.Parser(parse)
 import Language.OpLang.Checker(check)
 import Language.OpLang.Optimizer(optimize)

@@ -1,4 +1,4 @@
-module Language.OpLang.AST where
+module Language.OpLang.Syntax where
 
 import Data.Int(Int8)
 import Data.List(nub)

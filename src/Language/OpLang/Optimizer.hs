@@ -3,7 +3,7 @@ module Language.OpLang.Optimizer(optimize) where
 import Data.List((\\), union)
 import qualified Data.HashMap.Strict as HM
 
-import Language.OpLang.AST
+import Language.OpLang.Syntax
 
 set0 :: Op
 set0 = Set 0
