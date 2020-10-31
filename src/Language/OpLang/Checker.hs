@@ -1,14 +1,15 @@
 module Language.OpLang.Checker(check) where
 
-import Control.Monad((<=<), join)
-import Data.List((\\), nub)
 import Data.Maybe(fromJust)
+import Data.List((\\), nub)
+import Data.Bifunctor(first)
+import Control.Monad((<=<), join)
 import Text.Printf(printf)
 
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HM
 
-import Language.OpLang.AST(mapLeft, err, OpLang, Dict, Name, Def, DefList, calledOps)
+import Language.OpLang.AST(err, OpLang, Dict, Name, Def, DefList, calledOps)
 
 data Error
   = DuplicateDefinition Char
@@ -47,4 +48,4 @@ checkUndefinedCalls defs =
     undefinedCalls def = nub $ filter (not . (`HM.member` defs)) $ calledOps def
 
 check :: DefList -> OpLang Dict
-check = mapLeft (unlines . (show <$>)) . (checkUndefinedCalls <=< checkDuplicateDefs)
+check = first (unlines . (show <$>)) . (checkUndefinedCalls <=< checkDuplicateDefs)
