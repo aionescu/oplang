@@ -11,8 +11,8 @@ import Language.OpLang.IR
 import Language.OpLang.Parser(parse)
 import Language.OpLang.Checker(check)
 import Language.OpLang.Optimizer(optimize)
-import Language.OpLang.Opts
 import qualified Language.OpLang.Codegen.C as C
+import Opts
 
 getOutPath :: String -> String
 getOutPath file = dropExtension file ++ ext

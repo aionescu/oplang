@@ -1,4 +1,4 @@
-module Language.OpLang.Opts(Opts(..), getOpts) where
+module Opts(Opts(..), getOpts) where
 
 import Options.Applicative
 

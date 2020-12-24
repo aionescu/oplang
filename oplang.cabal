@@ -28,7 +28,7 @@ executable oplang
     Language.OpLang.Checker
     Language.OpLang.Optimizer
     Language.OpLang.Codegen.C
-    Language.OpLang.Opts
+    Opts
     Paths_oplang
 
   autogen-modules:

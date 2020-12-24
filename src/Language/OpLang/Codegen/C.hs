@@ -18,7 +18,7 @@ import System.FilePath(dropExtension)
 import System.Process(system)
 
 import Language.OpLang.IR(Op(..), Name, Body, Dict)
-import Language.OpLang.Opts(Opts(..))
+import Opts(Opts(..))
 
 type CCode = Builder
 
