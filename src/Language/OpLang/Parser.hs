@@ -5,7 +5,7 @@ import Data.Functor(($>))
 import Control.Applicative(liftA2)
 import Text.Parsec hiding (parse)
 
-import Language.OpLang.Syntax
+import Language.OpLang.IR
 
 type Parser = Parsec Text ()
 

@@ -17,7 +17,7 @@ import System.Directory(removeFile)
 import System.FilePath(dropExtension)
 import System.Process(system)
 
-import Language.OpLang.Syntax(Op(..), Name, Body, Dict)
+import Language.OpLang.IR(Op(..), Name, Body, Dict)
 import Language.OpLang.Opts(Opts(..))
 
 type CCode = Builder
