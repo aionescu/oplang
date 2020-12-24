@@ -1,7 +1,7 @@
 module Language.OpLang.Optimizer(optimize) where
 
 import Data.List((\\), union)
-import qualified Data.HashMap.Strict as HM
+import qualified Data.Map.Strict as M
 
 import Language.OpLang.IR
 
@@ -80,14 +80,14 @@ optimizeOps passes (name, ops) = removeSet0 $ optimizeN passes (name, set0 : ops
 callGraph :: Word -> Defs -> Defs -> [Name] -> Name -> Defs
 callGraph pass defs acc toGo crr =
   let
-    body = optimizeOps pass (crr, defs HM.! crr)
+    body = optimizeOps pass (crr, defs M.! crr)
     called = calledOps (crr, body) \\ [crr]
-    newAcc = HM.insert crr body acc
+    newAcc = M.insert crr body acc
   in
-    case filter (not . (`HM.member` acc)) (toGo `union` called) of
+    case filter (not . (`M.member` acc)) (toGo `union` called) of
       [] -> newAcc
       (next : nexts) ->
         callGraph pass defs newAcc nexts next
 
 optimize :: Word -> Defs -> Defs
-optimize passes defs = callGraph passes defs HM.empty [] Nothing
+optimize passes defs = callGraph passes defs M.empty [] Nothing

@@ -4,7 +4,7 @@ import Data.Char(ord)
 import Numeric(showHex)
 import Control.Monad(unless)
 
-import qualified Data.HashMap.Strict as HM
+import qualified Data.Map.Strict as M
 
 import Data.Text(Text)
 import qualified Data.Text as T
@@ -76,11 +76,11 @@ codegen :: Word -> Word -> Defs -> Text
 codegen stackSize tapeSize defs =
   B.run
     $ programPrologue stackSize tapeSize
-    <> mconcat (HM.elems $ HM.mapWithKey compileProto $ defs')
-    <> mconcat (HM.elems $ HM.mapWithKey compileDef $ defs')
-    <> compileMain (defs HM.! Nothing)
+    <> mconcat (M.elems $ M.mapWithKey compileProto defs')
+    <> mconcat (M.elems $ M.mapWithKey compileDef defs')
+    <> compileMain (defs M.! Nothing)
   where
-    defs' = HM.delete Nothing defs
+    defs' = M.delete Nothing defs
 
 cFile :: String -> String
 cFile file = dropExtension file <> ".c"

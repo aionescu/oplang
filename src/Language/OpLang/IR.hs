@@ -2,7 +2,7 @@ module Language.OpLang.IR where
 
 import Data.Int(Int8)
 import Data.List(nub)
-import Data.HashMap.Strict(HashMap)
+import Data.Map.Strict(Map)
 
 data Op
   = Add Int8
@@ -22,7 +22,7 @@ type Name = Maybe Char
 type Body = [Op]
 type Def = (Name, Body)
 
-type Defs = HashMap Name Body
+type Defs = Map Name Body
 
 calledOps :: Def -> [Name]
 calledOps (name, ops) = nub $ go ops

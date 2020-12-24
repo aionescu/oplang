@@ -6,8 +6,8 @@ import Data.Bifunctor(first)
 import Control.Monad((<=<), join)
 import Text.Printf(printf)
 
-import Data.HashMap.Strict(HashMap)
-import qualified Data.HashMap.Strict as HM
+import Data.Map.Strict(Map)
+import qualified Data.Map.Strict as M
 
 import Language.OpLang.IR(Defs, Name, Def, calledOps)
 
@@ -30,22 +30,22 @@ type Check a = Either [Error] a
 checkDuplicateDefs :: [Def] -> Check Defs
 checkDuplicateDefs defs =
   case names \\ nub names of
-    [] -> pure $ HM.fromList defs
+    [] -> pure $ M.fromList defs
     duplicates -> Left $ DuplicateDefinition . fromJust <$> nub duplicates
   where
     names = fst <$> defs
 
 checkUndefinedCalls :: Defs -> Check Defs
 checkUndefinedCalls defs =
-  if HM.null undefinedOps
+  if M.null undefinedOps
     then pure defs
-    else Left $ join $ HM.elems $ HM.mapWithKey (\k ns -> UndefinedCall k . fromJust <$> ns) undefinedOps
+    else Left $ join $ M.elems $ M.mapWithKey (\k ns -> UndefinedCall k . fromJust <$> ns) undefinedOps
   where
-    undefinedOps :: HashMap Name [Name]
-    undefinedOps = HM.filter (not . null) $ HM.mapWithKey (curry undefinedCalls) defs
+    undefinedOps :: Map Name [Name]
+    undefinedOps = M.filter (not . null) $ M.mapWithKey (curry undefinedCalls) defs
 
     undefinedCalls :: Def -> [Name]
-    undefinedCalls def = nub $ filter (not . (`HM.member` defs)) $ calledOps def
+    undefinedCalls def = nub $ filter (not . (`M.member` defs)) $ calledOps def
 
 check :: [Def] -> Either String Defs
 check = first (unlines . (show <$>)) . (checkUndefinedCalls <=< checkDuplicateDefs)
