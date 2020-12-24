@@ -9,7 +9,7 @@ import Text.Printf(printf)
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HM
 
-import Language.OpLang.IR(err, OpLang, Dict, Name, Def, DefList, calledOps)
+import Language.OpLang.IR(Defs, Name, Def, calledOps)
 
 data Error
   = DuplicateDefinition Char
@@ -27,25 +27,25 @@ instance Show Error where
 
 type Check a = Either [Error] a
 
-checkDuplicateDefs :: DefList -> Check Dict
+checkDuplicateDefs :: [Def] -> Check Defs
 checkDuplicateDefs defs =
   case names \\ nub names of
     [] -> pure $ HM.fromList defs
-    duplicates -> err $ DuplicateDefinition . fromJust <$> nub duplicates
+    duplicates -> Left $ DuplicateDefinition . fromJust <$> nub duplicates
   where
     names = fst <$> defs
 
-checkUndefinedCalls :: Dict -> Check Dict
+checkUndefinedCalls :: Defs -> Check Defs
 checkUndefinedCalls defs =
   if HM.null undefinedOps
     then pure defs
-    else err $ join $ HM.elems $ HM.mapWithKey (\k ns -> UndefinedCall k . fromJust <$> ns) undefinedOps
+    else Left $ join $ HM.elems $ HM.mapWithKey (\k ns -> UndefinedCall k . fromJust <$> ns) undefinedOps
   where
-    undefinedOps ::HashMap Name [Name]
+    undefinedOps :: HashMap Name [Name]
     undefinedOps = HM.filter (not . null) $ HM.mapWithKey (curry undefinedCalls) defs
 
     undefinedCalls :: Def -> [Name]
     undefinedCalls def = nub $ filter (not . (`HM.member` defs)) $ calledOps def
 
-check :: DefList -> OpLang Dict
+check :: [Def] -> Either String Defs
 check = first (unlines . (show <$>)) . (checkUndefinedCalls <=< checkDuplicateDefs)

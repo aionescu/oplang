@@ -77,17 +77,17 @@ removeSet0 ops = ops
 optimizeOps :: Word -> Def -> Body
 optimizeOps passes (name, ops) = removeSet0 $ optimizeN passes (name, set0 : ops)
 
-callGraph :: Word -> Dict -> Dict -> [Name] -> Name -> Dict
+callGraph :: Word -> Defs -> Defs -> [Name] -> Name -> Defs
 callGraph pass defs acc toGo crr =
   let
     body = optimizeOps pass (crr, defs HM.! crr)
     called = calledOps (crr, body) \\ [crr]
-    newAcc = (HM.insert crr body acc)
+    newAcc = HM.insert crr body acc
   in
-    case filter (not . (`HM.member` acc)) $ (toGo `union` called) of
+    case filter (not . (`HM.member` acc)) (toGo `union` called) of
       [] -> newAcc
       (next : nexts) ->
         callGraph pass defs newAcc nexts next
 
-optimize :: Word -> Dict -> Dict
+optimize :: Word -> Defs -> Defs
 optimize passes defs = callGraph passes defs HM.empty [] Nothing

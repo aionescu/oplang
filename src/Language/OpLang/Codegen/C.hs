@@ -17,7 +17,7 @@ import System.Directory(removeFile)
 import System.FilePath(dropExtension)
 import System.Process(system)
 
-import Language.OpLang.IR(Op(..), Name, Body, Dict)
+import Language.OpLang.IR(Op(..), Name, Body, Defs)
 import Opts(Opts(..))
 
 type CCode = Builder
@@ -72,7 +72,7 @@ compileOp name tape = \case
   OpCall c -> cName c <> "();"
   TailCall -> "goto l;"
 
-codegen :: Word -> Word -> Dict -> Text
+codegen :: Word -> Word -> Defs -> Text
 codegen stackSize tapeSize defs =
   B.run
     $ programPrologue stackSize tapeSize
@@ -88,7 +88,7 @@ cFile file = dropExtension file <> ".c"
 quote :: String -> String
 quote s = '"' : (s <> "\"")
 
-compile :: Opts -> Dict -> IO ()
+compile :: Opts -> Defs -> IO ()
 compile Opts{..} d = do
   let cPath = cFile optsPath
   let code = codegen optsStackSize optsTapeSize d

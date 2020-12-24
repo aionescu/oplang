@@ -1,5 +1,6 @@
 module Main(main) where
 
+import Control.Category((>>>))
 import Data.Functor((<&>))
 import System.Directory(doesFileExist)
 import Data.Text(Text)
@@ -15,11 +16,10 @@ import qualified Language.OpLang.Codegen.C as C
 import Opts
 
 getOutPath :: String -> String
-getOutPath file = dropExtension file ++ ext
+getOutPath file = dropExtension file ++ ext os
   where
-    ext = case os of
-      "mingw32" -> ".exe"
-      _ -> ".out"
+    ext "mingw32" = ".exe"
+    ext _ = ".out"
 
 changeOutPath :: Opts -> Opts
 changeOutPath opts =
@@ -27,26 +27,27 @@ changeOutPath opts =
     "" -> opts { optsOutPath = getOutPath $ optsPath opts }
     _ -> opts
 
-tryReadFile :: String -> IO (OpLang Text)
+tryReadFile :: String -> IO (Either String Text)
 tryReadFile path = do
   exists <- doesFileExist path
 
   if exists
-    then pure <$> T.readFile path
-    else pure $ err $ "Error: File '" <> path <> "' not found."
+  then pure <$> T.readFile path
+  else pure $ Left $ "Error: File '" <> path <> "' not found."
 
-pipeline :: Word -> OpLang Text -> OpLang Dict
+pipeline :: Word -> Either String Text -> Either String Defs
 pipeline passes code =
   code
-    >>= parse
-    >>= check
-    <&> optimize passes
+  >>= parse
+  >>= check
+  <&> optimize passes
 
 runCompiler :: Opts -> IO ()
 runCompiler opts@Opts{..} =
   tryReadFile optsPath
-    <&> pipeline optsOptPasses
-    >>= either putStrLn (C.compile opts)
+  >>=
+    (pipeline optsOptPasses
+    >>> either putStrLn (C.compile opts))
 
 main :: IO ()
 main = runCompiler . changeOutPath =<< getOpts

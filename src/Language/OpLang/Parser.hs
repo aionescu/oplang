@@ -1,6 +1,7 @@
 module Language.OpLang.Parser(parse) where
 
 import Data.Text(Text)
+import Data.Bifunctor(first)
 import Data.Functor(($>))
 import Control.Applicative(liftA2)
 import Text.Parsec hiding (parse)
@@ -39,7 +40,7 @@ custom = noneOf reserved
     reserved = "+-<>,.;:[]{}# \t\r\n"
 
 op :: Parser Op
-op = choice [try loop, intrinsic, (OpCall . Just) <$> custom]
+op = choice [try loop, intrinsic, OpCall . Just <$> custom]
 
 def :: Parser Def
 def = liftA2 ((,) . Just) (custom <* ws) (block '{' '}')
@@ -47,8 +48,8 @@ def = liftA2 ((,) . Just) (custom <* ws) (block '{' '}')
 topLevel :: Parser Def
 topLevel = (Nothing,) <$> many (op <* ws)
 
-program :: Parser DefList
+program :: Parser [Def]
 program = ws *> liftA2 (flip (:)) (many $ try def) topLevel <* eof
 
-parse :: Text -> OpLang DefList
-parse = toOpLang . runParser program () ""
+parse :: Text -> Either String [Def]
+parse = first show . runParser program () ""
