@@ -1,21 +1,18 @@
 module Language.OpLang.Codegen.C(compile) where
 
-import Data.Char(ord)
-import Numeric(showHex)
 import Control.Monad(unless)
-
+import Data.Char(ord)
+import Data.Foldable(fold)
 import qualified Data.Map.Strict as M
-
 import Data.Text(Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T.IO
-
-import Text.Builder(Builder)
-import qualified Text.Builder as B
-
+import Numeric(showHex)
 import System.Directory(removeFile)
 import System.FilePath(dropExtension)
 import System.Process(system)
+import Text.Builder(Builder)
+import qualified Text.Builder as B
 
 import Language.OpLang.IR(Op(..), Name, Body, Defs)
 import Opts(Opts(..))
@@ -36,8 +33,8 @@ programPrologue stackSize tapeSize =
   <> showC tapeSize
   <> "\nchar s_[S],*s=s_;"
 
-compileProto :: Name -> Body -> CCode
-compileProto name _body = "void " <> cName name <> "();"
+compileProto :: Name -> CCode
+compileProto name = "void " <> cName name <> "();"
 
 compileDef :: Name -> Body -> CCode
 compileDef name body = "void " <> cName name <> "(){char t_[T],*t;l:t=t_;memset(t,0,T);" <> compileOps name body <> "}"
@@ -75,12 +72,12 @@ compileOp name tape = \case
 codegen :: Word -> Word -> Defs -> Text
 codegen stackSize tapeSize defs =
   B.run
-    $ programPrologue stackSize tapeSize
-    <> mconcat (M.elems $ M.mapWithKey compileProto defs')
-    <> mconcat (M.elems $ M.mapWithKey compileDef defs')
-    <> compileMain (defs M.! Nothing)
-  where
-    defs' = M.delete Nothing defs
+  $ programPrologue stackSize tapeSize
+  <> fold (compileProto <$> M.keys defs')
+  <> fold (M.mapWithKey compileDef defs')
+  <> compileMain (defs M.! Nothing)
+    where
+      defs' = M.delete Nothing defs
 
 cFile :: String -> String
 cFile file = dropExtension file <> ".c"
