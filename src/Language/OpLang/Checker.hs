@@ -1,13 +1,12 @@
 module Language.OpLang.Checker(check) where
 
-import Data.Maybe(fromJust)
-import Data.List((\\), nub)
-import Data.Bifunctor(first)
 import Control.Monad((<=<), join)
-import Text.Printf(printf)
-
+import Data.Bifunctor(first)
+import Data.List((\\), nub)
 import Data.Map.Strict(Map)
 import qualified Data.Map.Strict as M
+import Data.Maybe(fromJust)
+import Text.Printf(printf)
 
 import Language.OpLang.IR(Defs, Name, Def, calledOps)
 

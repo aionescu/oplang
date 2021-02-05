@@ -2,9 +2,9 @@ module Main(main) where
 
 import Control.Category((>>>))
 import Data.Functor((<&>))
-import System.Directory(doesFileExist)
 import Data.Text(Text)
 import qualified Data.Text.IO as T
+import System.Directory(doesFileExist)
 import System.FilePath(dropExtension)
 import System.Info(os)
 
