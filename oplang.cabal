@@ -10,7 +10,7 @@ license: GPL-3
 license-file: LICENSE.txt
 author: Alex Ionescu
 maintainer: alxi.2001@gmail.com
-copyright: Copyright (C) 2019-2020 Alex Ionescu
+copyright: Copyright (C) 2019-2021 Alex Ionescu
 category: Compiler
 build-type: Simple
 extra-source-files: README.md
