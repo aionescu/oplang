@@ -1,6 +1,6 @@
 module Language.OpLang.Optimizer(optimize) where
 
-import Data.List((\\), union)
+import Data.List(union)
 import qualified Data.Map.Strict as M
 
 import Language.OpLang.IR
@@ -12,11 +12,10 @@ canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False
 canDoWithOffset (Loop _) = False
 canDoWithOffset (OpCall _) = False
-canDoWithOffset TailCall = False
 canDoWithOffset _ = True
 
-optimizeOnce :: Def -> (Bool, Body)
-optimizeOnce (name, body) = go False [] body
+optimizeOnce :: Body -> (Bool, Body)
+optimizeOnce = go False []
   where
     go :: Bool -> Body -> Body -> (Bool, Body)
     go changed acc ops' = case ops' of
@@ -56,38 +55,37 @@ optimizeOnce (name, body) = go False [] body
         let (changed', l') = go False [] l
         in go changed' (Loop l' : acc) ops
 
-      [OpCall c] | c == name -> go True acc [TailCall]
       op : ops -> go changed (op : acc) ops
       [] -> (changed, reverse acc)
 
-optimizeN :: Word -> Def -> Body
-optimizeN 0 (_, ops) = ops
-optimizeN n (name, ops) =
+optimizeN :: Word -> Body -> Body
+optimizeN 0 ops = ops
+optimizeN n ops =
   if changed
-  then optimizeN (n - 1) (name, ops')
+  then optimizeN (n - 1) ops'
   else ops'
 
   where
-    (changed, ops') = optimizeOnce (name, ops)
+    (changed, ops') = optimizeOnce ops
 
 removeSet0 :: Body -> Body
 removeSet0 (Set 0 : ops) = ops
 removeSet0 ops = ops
 
-optimizeOps :: Word -> Def -> Body
-optimizeOps passes (name, ops) = removeSet0 $ optimizeN passes (name, set0 : ops)
+optimizeOps :: Word -> Body -> Body
+optimizeOps passes ops = removeSet0 $ optimizeN passes (set0 : ops)
 
 callGraph :: Word -> Defs -> Defs -> [Name] -> Name -> Defs
-callGraph pass defs acc toGo crr =
+callGraph passes defs acc toGo crr =
   let
-    body = optimizeOps pass (crr, defs M.! crr)
-    called = calledOps (crr, body) \\ [crr]
+    body = optimizeOps passes (defs M.! crr)
+    called = filter (/= crr) $ calledOps body
     newAcc = M.insert crr body acc
   in
     case filter (not . (`M.member` acc)) (toGo `union` called) of
       [] -> newAcc
       (next : nexts) ->
-        callGraph pass defs newAcc nexts next
+        callGraph passes defs newAcc nexts next
 
 optimize :: Word -> Defs -> Defs
 optimize passes defs = callGraph passes defs M.empty [] Nothing

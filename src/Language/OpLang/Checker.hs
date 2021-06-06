@@ -8,7 +8,7 @@ import qualified Data.Map.Strict as M
 import Data.Maybe(fromJust)
 import Text.Printf(printf)
 
-import Language.OpLang.IR(Defs, Name, Def, calledOps)
+import Language.OpLang.IR(Defs, Name, Def, calledOps, Body)
 
 data Error
   = DuplicateDefinition Char
@@ -41,10 +41,10 @@ checkUndefinedCalls defs =
     else Left $ join $ M.elems $ M.mapWithKey (\k ns -> UndefinedCall k . fromJust <$> ns) undefinedOps
   where
     undefinedOps :: Map Name [Name]
-    undefinedOps = M.filter (not . null) $ M.mapWithKey (curry undefinedCalls) defs
+    undefinedOps = M.filter (not . null) $ M.map undefinedCalls defs
 
-    undefinedCalls :: Def -> [Name]
-    undefinedCalls def = nub $ filter (not . (`M.member` defs)) $ calledOps def
+    undefinedCalls :: Body -> [Name]
+    undefinedCalls body = nub $ filter (not . (`M.member` defs)) $ calledOps body
 
 check :: [Def] -> Either String Defs
 check = first (unlines . (show <$>)) . (checkUndefinedCalls <=< checkDuplicateDefs)

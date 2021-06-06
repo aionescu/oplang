@@ -37,7 +37,7 @@ compileProto :: Name -> CCode
 compileProto name = "void " <> cName name <> "();"
 
 compileDef :: Name -> Body -> CCode
-compileDef name body = "void " <> cName name <> "(){char t_[T],*t;l:t=t_;memset(t,0,T);" <> compileOps name body <> "}"
+compileDef name body = "void " <> cName name <> "(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps name body <> "}"
 
 compileMain :: Body -> CCode
 compileMain body = "int main(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps Nothing body <> "return 0;}"
@@ -67,7 +67,6 @@ compileOp name tape = \case
   Write 1 -> "printf(\"%c\",*" <> tape <> ");"
   Write n -> "{char c=*" <> tape <> ";printf(\"" <> repeatText n "%c" <> "\"" <> repeatText n ",c" <> ");}"
   OpCall c -> cName c <> "();"
-  TailCall -> "goto l;"
 
 codegen :: Word -> Word -> Defs -> Text
 codegen stackSize tapeSize defs =
