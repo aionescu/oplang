@@ -3,16 +3,16 @@ module Language.OpLang.Codegen.C(compile) where
 import Control.Monad(unless)
 import Data.Char(ord)
 import Data.Foldable(fold)
-import qualified Data.Map.Strict as M
+import Data.Map.Strict qualified as M
 import Data.Text(Text)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T.IO
+import Data.Text qualified as T
+import Data.Text.IO qualified as T.IO
 import Numeric(showHex)
 import System.Directory(removeFile)
 import System.FilePath(dropExtension)
 import System.Process(system)
 import Text.Builder(Builder)
-import qualified Text.Builder as B
+import Text.Builder qualified as B
 
 import Language.OpLang.IR(Op(..), Name, Body, Defs)
 import Opts(Opts(..))

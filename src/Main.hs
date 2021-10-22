@@ -3,7 +3,7 @@ module Main(main) where
 import Control.Category((>>>))
 import Data.Functor((<&>))
 import Data.Text(Text)
-import qualified Data.Text.IO as T
+import Data.Text.IO qualified as T
 import System.Directory(doesFileExist)
 import System.FilePath(dropExtension)
 import System.Info(os)
@@ -12,7 +12,7 @@ import Language.OpLang.IR
 import Language.OpLang.Parser(parse)
 import Language.OpLang.Checker(check)
 import Language.OpLang.Optimizer(optimize)
-import qualified Language.OpLang.Codegen.C as C
+import Language.OpLang.Codegen.C qualified as C
 import Opts
 
 getOutPath :: String -> String

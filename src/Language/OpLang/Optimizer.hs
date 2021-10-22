@@ -1,7 +1,7 @@
 module Language.OpLang.Optimizer(optimize) where
 
 import Data.List(union)
-import qualified Data.Map.Strict as M
+import Data.Map.Strict qualified as M
 
 import Language.OpLang.IR
 
