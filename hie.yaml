@@ -1,5 +1,8 @@
 cradle:
   cabal:
+    - path: "src/Main.hs"
+      component: "oplang:exe:oplang"
+
     - path: "src/Language/OpLang/IR.hs"
       component: "oplang:exe:oplang"
 
@@ -16,7 +19,4 @@ cradle:
       component: "oplang:exe:oplang"
 
     - path: "src/Opts.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Main.hs"
       component: "oplang:exe:oplang"

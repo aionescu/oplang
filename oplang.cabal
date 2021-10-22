@@ -1,4 +1,4 @@
-cabal-version: 2.0
+cabal-version: 3.6
 
 name: oplang
 version: 0.1.0.0
@@ -6,7 +6,7 @@ synopsis: Compiler for OpLang, an esoteric programming language
 description: Please see the README on GitHub at <https://github.com/aionescu/oplang#readme>
 homepage: https://github.com/aionescu/oplang#readme
 bug-reports: https://github.com/aionescu/oplang/issues
-license: GPL-3
+license: GPL-3.0-only
 license-file: LICENSE.txt
 author: Alex Ionescu
 maintainer: alxi.2001@gmail.com
@@ -29,15 +29,11 @@ executable oplang
     Language.OpLang.Optimizer
     Language.OpLang.Codegen.C
     Opts
-    Paths_oplang
-
-  autogen-modules:
-    Paths_oplang
 
   hs-source-dirs: src
 
   build-depends:
-    base >=4.13 && <5
+    base >=4.14 && <5
     , containers ^>= 0.6.2
     , directory ^>= 1.3.6
     , filepath ^>= 1.4.2
@@ -53,6 +49,8 @@ executable oplang
     -with-rtsopts=-N
     -Wall
     -Wincomplete-uni-patterns
+    -Wprepositive-qualified-module
+    -Wunused-packages
 
   default-extensions:
     ApplicativeDo
@@ -61,6 +59,7 @@ executable oplang
     ConstraintKinds
     DataKinds
     DefaultSignatures
+    DeriveAnyClass
     DeriveFoldable
     DeriveFunctor
     DeriveGeneric
@@ -74,16 +73,19 @@ executable oplang
     FunctionalDependencies
     GADTs
     GeneralizedNewtypeDeriving
+    ImportQualifiedPost
     InstanceSigs
     KindSignatures
     LambdaCase
     MultiParamTypeClasses
     MultiWayIf
     NamedFieldPuns
+    OverloadedLists
     OverloadedStrings
     PatternSynonyms
     RankNTypes
     RecordWildCards
+    RecursiveDo
     ScopedTypeVariables
     StandaloneDeriving
     TupleSections
@@ -91,5 +93,6 @@ executable oplang
     TypeFamilies
     TypeFamilyDependencies
     TypeOperators
+    ViewPatterns
 
   default-language: Haskell2010
