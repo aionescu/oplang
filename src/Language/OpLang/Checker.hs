@@ -1,50 +1,29 @@
 module Language.OpLang.Checker(check) where
 
-import Control.Monad((<=<), join)
-import Data.Bifunctor(first)
-import Data.List((\\), nub)
-import Data.Map.Strict(Map)
+import Data.Bifunctor(bimap, first, second)
 import Data.Map.Strict qualified as M
-import Data.Maybe(fromJust)
-import Text.Printf(printf)
+import Data.Set qualified as S
+import Data.Text(Text)
+import Data.Text qualified as T
 
-import Language.OpLang.IR(Defs, Name, Def, calledOps, Body)
+import Language.OpLang.Syntax
+import Utils
 
-data Error
-  = DuplicateDefinition Char
-  | UndefinedCall Name Char
-
-instance Show Error where
-  show = printf "Error: %s." . go
-    where
-      go :: Error -> String
-      go (DuplicateDefinition op) = printf "Duplicate definition of operator '%c'" op
-      go (UndefinedCall caller callee) = printf "Call to undefined operator '%c' in %s" callee $ fmtName caller
-
-      fmtName :: Name -> String
-      fmtName = maybe "top level" (printf "body of '%c'")
-
-type Check a = Either [Error] a
-
-checkDuplicateDefs :: [Def] -> Check Defs
-checkDuplicateDefs defs =
-  case names \\ nub names of
-    [] -> pure $ M.fromList defs
-    duplicates -> Left $ DuplicateDefinition . fromJust <$> nub duplicates
+checkUndefinedCalls :: Program -> Either [Text] Program
+checkUndefinedCalls p@Program{..}
+  | [] <- errors = pure p
+  | otherwise = Left errors
   where
-    names = fst <$> defs
+    defined = M.keysSet opDefs
 
-checkUndefinedCalls :: Defs -> Check Defs
-checkUndefinedCalls defs =
-  if M.null undefinedOps
-    then pure defs
-    else Left $ join $ M.elems $ M.mapWithKey (\k ns -> UndefinedCall k . fromJust <$> ns) undefinedOps
-  where
-    undefinedOps :: Map Name [Name]
-    undefinedOps = M.filter (not . null) $ M.map undefinedCalls defs
+    undefinedInTopLevel = (Nothing, calledOps topLevel S.\\ defined)
+    undefinedInDefs = bimap Just ((S.\\ defined) . calledOps) <$> M.toList opDefs
 
-    undefinedCalls :: Body -> [Name]
-    undefinedCalls body = nub $ filter (not . (`M.member` defs)) $ calledOps body
+    toMsg (Nothing, ops) = ("Error (in top level): Calls to undefined operator " <>) . showT <$> ops
+    toMsg (Just i, ops) =
+      (("Error (in definition of " <> showT i <> "): Calls to undefined operator ") <>) . showT <$> ops
 
-check :: [Def] -> Either String Defs
-check = first (unlines . (show <$>)) . (checkUndefinedCalls <=< checkDuplicateDefs)
+    errors = toMsg . second S.toList =<< undefinedInTopLevel : undefinedInDefs
+
+check :: Program -> Either Text Program
+check = first T.unlines . checkUndefinedCalls

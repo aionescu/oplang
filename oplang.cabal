@@ -23,7 +23,8 @@ executable oplang
   main-is: Main.hs
 
   other-modules:
-    Language.OpLang.IR
+    Utils
+    Language.OpLang.Syntax
     Language.OpLang.Parser
     Language.OpLang.Checker
     Language.OpLang.Optimizer
@@ -50,6 +51,7 @@ executable oplang
     -Wall
     -Wincomplete-uni-patterns
     -Wprepositive-qualified-module
+    -Wmissing-deriving-strategies
     -Wunused-packages
 
   default-extensions:

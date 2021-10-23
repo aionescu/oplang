@@ -2,10 +2,15 @@ module Language.OpLang.Parser(parse) where
 
 import Data.Bifunctor(first)
 import Data.Functor(($>))
+import Data.List(intercalate)
+import Data.Map.Strict(Map)
+import Data.Map.Strict qualified as M
+import Data.Set qualified as S
 import Data.Text(Text)
+import Data.Text qualified as T
 import Text.Parsec hiding (parse)
 
-import Language.OpLang.IR
+import Language.OpLang.Syntax
 
 type Parser = Parsec Text ()
 
@@ -41,16 +46,24 @@ custom :: Parser Char
 custom = noneOf reserved
 
 op :: Parser Op
-op = choice [try loop, intrinsic, OpCall . Just <$> custom] <* ws
+op = choice [try loop, intrinsic, Call <$> custom] <* ws
 
-def :: Parser Def
-def = (,) . Just <$> (custom <* ws) <*> block '{' '}'
+def :: Parser (Id, [Op])
+def = (,) <$> (custom <* ws) <*> block '{' '}'
 
-topLevel :: Parser Def
-topLevel = (Nothing,) <$> many op
+defs :: Parser (Map Id [Op])
+defs = many (try def) >>= toMap
+  where
+    toMap ds
+      | unique = pure $ M.fromList ds
+      | otherwise = fail $ "Duplicate definition of operators: " <> intercalate ", " (show <$> S.toList set)
+      where
+        ids = fst <$> ds
+        set = S.fromList ids
+        unique = S.size set == length ids
 
-program :: Parser [Def]
-program = ws *> (flip (:) <$> many (try def) <*> topLevel) <* eof
+program :: Parser Program
+program = ws *> (Program <$> defs <*> many op) <* eof
 
-parse :: Text -> Either String [Def]
-parse = first show . runParser program () ""
+parse :: Text -> Either Text Program
+parse = first (T.pack . show) . runParser program () ""

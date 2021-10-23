@@ -14,16 +14,16 @@ import System.Process(system)
 import Text.Builder(Builder)
 import Text.Builder qualified as B
 
-import Language.OpLang.IR(Op(..), Name, Body, Defs)
-import Opts(Opts(..))
+import Language.OpLang.Syntax
+import Opts
 
 type CCode = Builder
 
 showC :: Show a => a -> CCode
 showC = B.string . show
 
-cName :: Name -> CCode
-cName = maybe "main" \n -> "o" <> B.string (showHex (ord n) "")
+cName :: Id -> CCode
+cName n = "o" <> B.string (showHex (ord n) "")
 
 programPrologue :: Word -> Word -> CCode
 programPrologue stackSize tapeSize =
@@ -33,17 +33,17 @@ programPrologue stackSize tapeSize =
   <> showC tapeSize
   <> "\nchar s_[S],*s=s_;"
 
-compileProto :: Name -> CCode
+compileProto :: Id -> CCode
 compileProto name = "void " <> cName name <> "();"
 
-compileDef :: Name -> Body -> CCode
-compileDef name body = "void " <> cName name <> "(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps name body <> "}"
+compileDef :: Id -> [Op] -> CCode
+compileDef name body = "void " <> cName name <> "(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps body <> "}"
 
-compileMain :: Body -> CCode
-compileMain body = "int main(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps Nothing body <> "return 0;}"
+compileMain :: [Op] -> CCode
+compileMain body = "int main(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps body <> "return 0;}"
 
-compileOps :: Name -> [Op] -> CCode
-compileOps name ops = mconcat $ compileOp name "t" <$> ops
+compileOps :: [Op] -> CCode
+compileOps = foldMap $ compileOp "t"
 
 sign :: (Ord a, Num a) => a -> CCode
 sign n
@@ -53,41 +53,39 @@ sign n
 repeatText :: Word -> Text -> CCode
 repeatText n = B.text . T.concat . replicate (fromIntegral n)
 
-compileOp :: Name -> CCode -> Op -> CCode
-compileOp name tape = \case
+compileOp :: CCode -> Op -> CCode
+compileOp tape = \case
   Add n -> "*" <> tape <> sign n <> "=" <> showC (abs n) <> ";"
   Move n -> tape <> sign n <> "=" <> showC (abs n) <> ";"
   Set n -> "*" <> tape <> "=" <> showC n <> ";"
   Pop n -> "*" <> tape <> "=*(s-=" <> showC n <> ");"
   Push -> "*(s++)=*" <> tape <> ";"
   Peek -> "*" <> tape <> "=*(s-1);"
-  WithOffset off op -> compileOp name ("(" <> tape <> "+" <> showC off <> ")") op
-  Loop ops -> "while(*t){" <> compileOps name ops <> "}"
+  WithOffset off op -> compileOp ("(" <> tape <> "+" <> showC off <> ")") op
+  Loop ops -> "while(*t){" <> compileOps ops <> "}"
   Read -> "scanf(\"%c\"," <> tape <> ");"
   Write 1 -> "printf(\"%c\",*" <> tape <> ");"
   Write n -> "{char c=*" <> tape <> ";printf(\"" <> repeatText n "%c" <> "\"" <> repeatText n ",c" <> ");}"
-  OpCall c -> cName c <> "();"
+  Call c -> cName c <> "();"
 
-codegen :: Word -> Word -> Defs -> Text
-codegen stackSize tapeSize defs =
+codegen :: Word -> Word -> Program -> Text
+codegen stackSize tapeSize Program{..} =
   B.run
   $ programPrologue stackSize tapeSize
-  <> fold (compileProto <$> M.keys defs')
-  <> fold (M.mapWithKey compileDef defs')
-  <> compileMain (defs M.! Nothing)
-    where
-      defs' = M.delete Nothing defs
+  <> fold (compileProto <$> M.keys opDefs)
+  <> fold (M.mapWithKey compileDef opDefs)
+  <> compileMain topLevel
 
-cFile :: String -> String
+cFile :: FilePath -> FilePath
 cFile file = dropExtension file <> ".c"
 
-quote :: String -> String
+quote :: FilePath -> FilePath
 quote s = '"' : (s <> "\"")
 
-compile :: Opts -> Defs -> IO ()
-compile Opts{..} d = do
+compile :: Opts -> Program -> IO ()
+compile Opts{..} p = do
   let cPath = cFile optsPath
-  let code = codegen optsStackSize optsTapeSize d
+  let code = codegen optsStackSize optsTapeSize p
 
   T.IO.writeFile cPath code
   system $ quote optsCCPath <> " -o " <> quote optsOutPath <> " " <> quote cPath
