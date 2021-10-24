@@ -1,25 +1,34 @@
 module Main(main) where
 
-import Control.Category((>>>))
-import Control.Monad((>=>))
-import Data.Function((&))
-import Data.Functor((<&>))
+import Control.Monad.IO.Class(liftIO)
+import Control.Monad.Reader(asks)
+import Data.Foldable(traverse_)
+import Data.Text(Text)
 import Data.Text.IO qualified as T
+import System.Exit(exitFailure)
 
-import Language.OpLang.Parser(parse)
-import Language.OpLang.Checker(check)
-import Language.OpLang.Optimizer(optimize)
+import Language.OpLang.Comp
+import Language.OpLang.Parser
+import Language.OpLang.Checker
+import Language.OpLang.Optimizer
 import Language.OpLang.Codegen.C qualified as C
 import Opts
 
-runCompiler :: Opts -> IO ()
-runCompiler opts@Opts{..} =
-  optsPath &
-    ( T.readFile
-      >=> (parse >=> check)
-      >>> (<&> optimize optsOptPasses)
-      >>> either T.putStrLn (C.compile opts)
-    )
+getCode :: Comp Text
+getCode = liftIO . T.readFile =<< asks optsPath
+
+pipeline :: Comp ()
+pipeline =
+  getCode
+  >>= parse
+  >>= check
+  >>= optimize
+  >>= C.compile
 
 main :: IO ()
-main = getOpts >>= runCompiler
+main = do
+  opts <- getOpts
+  (warnings, result) <- runComp opts pipeline
+
+  traverse_ T.putStrLn warnings
+  maybe exitFailure pure result

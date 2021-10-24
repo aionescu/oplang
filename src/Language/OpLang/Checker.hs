@@ -1,18 +1,24 @@
 module Language.OpLang.Checker(check) where
 
-import Data.Bifunctor(bimap, first, second)
+import Control.Applicative(empty)
+import Control.Monad((>=>))
+import Control.Monad.Writer.Strict(tell)
+import Data.Bifunctor(bimap, second)
+import Data.Functor(($>))
+import Data.Map.Strict(Map)
 import Data.Map.Strict qualified as M
+import Data.Set(Set)
 import Data.Set qualified as S
-import Data.Text(Text)
 import Data.Text qualified as T
 
+import Language.OpLang.Comp
 import Language.OpLang.Syntax
 import Utils
 
-checkUndefinedCalls :: Program -> Either [Text] Program
+checkUndefinedCalls :: Program -> Comp Program
 checkUndefinedCalls p@Program{..}
   | [] <- errors = pure p
-  | otherwise = Left errors
+  | otherwise = tell errors *> empty
   where
     defined = M.keysSet opDefs
 
@@ -25,5 +31,25 @@ checkUndefinedCalls p@Program{..}
 
     errors = toMsg . second S.toList =<< undefinedInTopLevel : undefinedInDefs
 
-check :: Program -> Either Text Program
-check = first T.unlines . checkUndefinedCalls
+allUsedOps :: Map Id [Op] -> Set Id -> [Op] -> Set Id
+allUsedOps defs seen ops
+  | S.null used = seen
+  | otherwise = foldMap (allUsedOps defs (seen <> used) . (defs M.!)) used
+  where
+    used = calledOps ops S.\\ seen
+
+removeUnusedOps :: Program -> Comp Program
+removeUnusedOps p@Program{..} =
+  tell warning $> p { opDefs = usedDefs }
+  where
+    warning =
+      [ "Warning: Unused operators: " <> T.intercalate ", " (showT <$> M.keys unusedDefs)
+      | not $ M.null unusedDefs
+      ]
+
+    unusedDefs = opDefs M.\\ usedDefs
+    usedDefs = M.restrictKeys opDefs usedOps
+    usedOps = allUsedOps opDefs S.empty topLevel
+
+check :: Program -> Comp Program
+check = checkUndefinedCalls >=> removeUnusedOps

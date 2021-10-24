@@ -1,16 +1,18 @@
 module Language.OpLang.Parser(parse) where
 
-import Data.Bifunctor(first)
+import Control.Applicative(empty)
+import Control.Monad.Writer.Strict(tell)
 import Data.Functor(($>))
 import Data.List(intercalate)
 import Data.Map.Strict(Map)
 import Data.Map.Strict qualified as M
 import Data.Set qualified as S
 import Data.Text(Text)
-import Data.Text qualified as T
 import Text.Parsec hiding (parse)
 
+import Language.OpLang.Comp
 import Language.OpLang.Syntax
+import Utils
 
 type Parser = Parsec Text ()
 
@@ -65,5 +67,8 @@ defs = many (try def) >>= toMap
 program :: Parser Program
 program = ws *> (Program <$> defs <*> many op) <* eof
 
-parse :: Text -> Either Text Program
-parse = first (T.pack . show) . runParser program () ""
+parse :: Text -> Comp Program
+parse code =
+  case runParser program () "" code of
+    Left e -> tell [showT e] *> empty
+    Right p -> pure p

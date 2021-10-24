@@ -1,11 +1,11 @@
 module Language.OpLang.Optimizer(optimize) where
 
-import Data.Map.Strict(Map)
-import Data.Map.Strict qualified as M
-import Data.Set(Set)
-import Data.Set qualified as S
+import Control.Category((>>>))
+import Control.Monad.Reader(asks)
 
+import Language.OpLang.Comp
 import Language.OpLang.Syntax
+import Opts
 
 canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False
@@ -75,19 +75,10 @@ removeSet0 ops = ops
 optimizeOps :: Word -> [Op] -> [Op]
 optimizeOps passes ops = removeSet0 $ optimizeN passes (Set 0 : ops)
 
-allUsedOps :: Map Id [Op] -> Set Id -> [Op] -> Set Id
-allUsedOps defs seen ops
-  | S.null used = seen
-  | otherwise = foldMap (allUsedOps defs (seen <> used) . (defs M.!)) used
-  where
-    used = calledOps ops S.\\ seen
-
-optimize :: Word -> Program -> Program
-optimize passes Program{..} =
-  Program
-  { opDefs = optimizeOps passes <$> usedDefs
-  , topLevel = optimizeOps passes topLevel
-  }
-  where
-    usedDefs = M.restrictKeys opDefs usedOps
-    usedOps = allUsedOps opDefs S.empty topLevel
+optimize :: Program -> Comp Program
+optimize Program{..} =
+  asks $ optsOptPasses >>> \passes ->
+    Program
+    { opDefs = optimizeOps passes <$> opDefs
+    , topLevel = optimizeOps passes topLevel
+    }

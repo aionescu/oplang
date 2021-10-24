@@ -9,6 +9,9 @@ cradle:
     - path: "src/Language/OpLang/Syntax.hs"
       component: "oplang:exe:oplang"
 
+    - path: "src/Language/OpLang/Comp.hs"
+      component: "oplang:exe:oplang"
+
     - path: "src/Language/OpLang/Parser.hs"
       component: "oplang:exe:oplang"
 
