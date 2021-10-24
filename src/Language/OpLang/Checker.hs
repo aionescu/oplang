@@ -1,7 +1,6 @@
 module Language.OpLang.Checker(check) where
 
-import Control.Applicative(empty)
-import Control.Monad((>=>))
+import Control.Monad(guard)
 import Control.Monad.Writer.Strict(tell)
 import Data.Bifunctor(bimap, second)
 import Data.Functor(($>))
@@ -15,10 +14,8 @@ import Language.OpLang.Comp
 import Language.OpLang.Syntax
 import Utils
 
-checkUndefinedCalls :: Program -> Comp Program
-checkUndefinedCalls p@Program{..}
-  | [] <- errors = pure p
-  | otherwise = tell errors *> empty
+checkUndefinedCalls :: Program -> Comp ()
+checkUndefinedCalls Program{..} = tell errors *> guard (null errors)
   where
     defined = M.keysSet opDefs
 
@@ -52,4 +49,4 @@ removeUnusedOps p@Program{..} =
     usedOps = allUsedOps opDefs S.empty topLevel
 
 check :: Program -> Comp Program
-check = checkUndefinedCalls >=> removeUnusedOps
+check p = checkUndefinedCalls p *> removeUnusedOps p
