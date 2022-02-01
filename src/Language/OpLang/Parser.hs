@@ -1,6 +1,6 @@
 module Language.OpLang.Parser(parse) where
 
-import Control.Applicative(empty)
+import Control.Monad.Reader(asks)
 import Control.Monad.Writer.Strict(tell)
 import Data.Functor(($>))
 import Data.List(intercalate)
@@ -8,50 +8,58 @@ import Data.Map.Strict(Map)
 import Data.Map.Strict qualified as M
 import Data.Set qualified as S
 import Data.Text(Text)
-import Text.Parsec hiding (parse)
+import Data.Text qualified as T
+import Data.Void(Void)
+import Text.Megaparsec hiding (parse)
+import Text.Megaparsec.Char(space1)
+import Text.Megaparsec.Char.Lexer qualified as L
 
-import Language.OpLang.Comp
-import Language.OpLang.Syntax
-import Utils
+import Language.OpLang.Comp(Comp)
+import Language.OpLang.Syntax(Program(..), Op(..), Id)
+import Opts(optsPath)
 
-type Parser = Parsec Text ()
-
-reserved :: [Char]
-reserved = "+-<>,.;:[]{}# \t\r\n"
-
-comment :: Parser ()
-comment = char '#' *> manyTill anyChar (endOfLine $> () <|> eof) $> ()
+type Parser = Parsec Void Text
 
 ws :: Parser ()
-ws = spaces *> skipMany (comment *> spaces)
+ws = L.space space1 (L.skipLineComment "#") empty
+
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme ws
+
+symbol :: Text -> Parser Text
+symbol = L.symbol ws
+
+reserved :: [Char]
+reserved = "+-<>,.;:[]{}"
 
 intrinsic :: Parser Op
 intrinsic =
   choice
-  [ char '+' $> Add 1
-  , char '-' $> Add (-1)
-  , char '<' $> Move (-1)
-  , char '>' $> Move 1
-  , char ',' $> Read
-  , char '.' $> Write 1
-  , char ';' $> Pop 1
-  , char ':' $> Push
+  [ symbol "+" $> Add 1
+  , symbol "-" $> Add (-1)
+  , symbol "<" $> Move (-1)
+  , symbol ">" $> Move 1
+  , symbol "," $> Read
+  , symbol "." $> Write 1
+  , symbol ";" $> Pop 1
+  , symbol ":" $> Push
   ]
+  <?> "intrinsic operator"
 
-block :: Char -> Char -> Parser [Op]
-block b e = between (char b *> ws) (char e *> ws) $ many op
+block :: Text -> Text -> Parser [Op]
+block b e = between (symbol b) (symbol e) $ many op
 
 loop :: Parser Op
-loop = Loop <$> block '[' ']'
+loop = Loop <$> block "[" "]" <?> "loop"
 
 custom :: Parser Char
-custom = noneOf reserved
+custom = lexeme (satisfy (`notElem` reserved) <?> "custom operator")
 
 op :: Parser Op
-op = choice [try loop, intrinsic, Call <$> custom] <* ws
+op = choice [try loop, intrinsic, Call <$> custom] <?> "operator"
 
 def :: Parser (Id, [Op])
-def = (,) <$> (custom <* ws) <*> block '{' '}'
+def = (,) <$> lexeme custom <*> block "{" "}" <?> "definition"
 
 defs :: Parser (Map Id [Op])
 defs = many (try def) >>= toMap
@@ -65,10 +73,15 @@ defs = many (try def) >>= toMap
         unique = S.size set == length ids
 
 program :: Parser Program
-program = ws *> (Program <$> defs <*> many op) <* eof
+program = Program <$> defs <*> (many op <?> "toplevel")
+
+programFull :: Parser Program
+programFull = ws *> program <* eof
 
 parse :: Text -> Comp Program
-parse code =
-  case runParser program () "" code of
-    Left e -> tell [showT e] *> empty
+parse code = do
+  file <- asks optsPath
+
+  case runParser programFull file code of
+    Left e -> tell [T.pack $ errorBundlePretty e] *> empty
     Right p -> pure p
