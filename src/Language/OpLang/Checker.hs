@@ -4,6 +4,7 @@ import Control.Monad(guard)
 import Control.Monad.Writer.Strict(tell)
 import Data.Bifunctor(bimap)
 import Data.Functor(($>))
+import Data.List(intercalate)
 import Data.Map.Strict(Map)
 import Data.Map.Strict qualified as M
 import Data.Set(Set)
@@ -11,12 +12,11 @@ import Data.Set qualified as S
 import Data.Text(Text)
 import Data.Text qualified as T
 
-import Language.OpLang.Comp
-import Language.OpLang.Syntax
-import Utils
+import Language.OpLang.Comp(Comp)
+import Language.OpLang.Syntax(Program(..), Op, Id, calledOps)
 
 enumerate :: Show a => [a] -> Text
-enumerate l = T.intercalate ", " $ showT <$> l
+enumerate l = T.pack $ intercalate ", " $ show <$> l
 
 checkUndefinedCalls :: Program -> Comp ()
 checkUndefinedCalls Program{..} = tell errors *> guard (null errors)
@@ -26,7 +26,7 @@ checkUndefinedCalls Program{..} = tell errors *> guard (null errors)
     undefinedInTopLevel = (Nothing, calledOps topLevel S.\\ defined)
     undefinedInDefs = bimap Just ((S.\\ defined) . calledOps) <$> M.toList opDefs
 
-    fmt = maybe "top level" $ ("definition of " <>) . showT
+    fmt = maybe "top level" $ ("definition of " <>) . T.pack . show
     toMsg (name, ops) =
       "Error (in " <> fmt name <> "): Calls to undefined operators: " <> enumerate (S.toList ops)
 

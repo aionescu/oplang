@@ -23,13 +23,12 @@ executable oplang
   main-is: Main.hs
 
   other-modules:
-    Utils
-    Language.OpLang.Syntax
-    Language.OpLang.Comp
-    Language.OpLang.Parser
     Language.OpLang.Checker
-    Language.OpLang.Optimizer
     Language.OpLang.Codegen.C
+    Language.OpLang.Comp
+    Language.OpLang.Optimizer
+    Language.OpLang.Parser
+    Language.OpLang.Syntax
     Opts
 
   hs-source-dirs: src
@@ -85,7 +84,6 @@ executable oplang
     MultiParamTypeClasses
     MultiWayIf
     NamedFieldPuns
-    OverloadedLists
     OverloadedStrings
     PatternSynonyms
     RankNTypes
