@@ -1,28 +1,4 @@
 cradle:
   cabal:
-    - path: "src/Main.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Utils.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Language/OpLang/Syntax.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Language/OpLang/Comp.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Language/OpLang/Parser.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Language/OpLang/Checker.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Language/OpLang/Optimizer.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Language/OpLang/Codegen/C.hs"
-      component: "oplang:exe:oplang"
-
-    - path: "src/Opts.hs"
+    - path: "src"
       component: "oplang:exe:oplang"
