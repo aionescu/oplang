@@ -1,4 +1,4 @@
-module Language.OpLang.Comp where
+module Language.OpLang.Comp(Comp, runComp) where
 
 import Control.Applicative(Alternative)
 import Control.Category((>>>))

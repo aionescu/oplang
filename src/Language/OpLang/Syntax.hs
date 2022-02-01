@@ -1,4 +1,6 @@
-module Language.OpLang.Syntax where
+{-# LANGUAGE StrictData #-}
+
+module Language.OpLang.Syntax(Id, Op(..), Program(..), calledOps) where
 
 import Data.Int(Int8)
 import Data.Map.Strict(Map)

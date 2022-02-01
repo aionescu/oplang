@@ -1,3 +1,5 @@
+{-# LANGUAGE StrictData #-}
+
 module Opts(Opts(..), getOpts) where
 
 import Options.Applicative

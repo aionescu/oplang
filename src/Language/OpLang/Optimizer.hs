@@ -3,9 +3,9 @@ module Language.OpLang.Optimizer(optimize) where
 import Control.Category((>>>))
 import Control.Monad.Reader(asks)
 
-import Language.OpLang.Comp
-import Language.OpLang.Syntax
-import Opts
+import Language.OpLang.Comp(Comp)
+import Language.OpLang.Syntax(Program(..), Op(..))
+import Opts(Opts(..))
 
 canDoWithOffset :: Op -> Bool
 canDoWithOffset (Move _) = False
