@@ -1,4 +1,4 @@
-module Language.OpLang.Codegen.C(compile) where
+module Language.OpLang.Codegen(compile) where
 
 import Control.Monad(unless)
 import Control.Monad.IO.Class(liftIO)
@@ -8,7 +8,7 @@ import Data.Foldable(fold)
 import Data.Map.Strict qualified as M
 import Data.Text(Text)
 import Data.Text qualified as T
-import Data.Text.IO qualified as T.IO
+import Data.Text.IO qualified as T
 import Numeric(showHex)
 import System.Directory(removeFile)
 import System.FilePath(dropExtension)
@@ -16,9 +16,9 @@ import System.Process(system)
 import Text.Builder(Builder)
 import Text.Builder qualified as B
 
-import Language.OpLang.Comp
-import Language.OpLang.Syntax
-import Opts
+import Control.Monad.Comp(Comp)
+import Data.Opts(Opts(..))
+import Language.OpLang.Syntax(Id, Op(..), Program(..))
 
 type CCode = Builder
 
@@ -82,9 +82,6 @@ codegen stackSize tapeSize Program{..} =
 cFile :: FilePath -> FilePath
 cFile file = dropExtension file <> ".c"
 
-quote :: FilePath -> FilePath
-quote s = '"' : (s <> "\"")
-
 compile :: Program -> Comp ()
 compile p = do
   Opts{..} <- ask
@@ -92,8 +89,8 @@ compile p = do
   let code = codegen optsStackSize optsTapeSize p
 
   liftIO do
-    T.IO.writeFile cPath code
-    system $ quote optsCCPath <> " -o " <> quote optsOutPath <> " " <> quote cPath
+    T.writeFile cPath code
+    system $ show optsCCPath <> " -o " <> show optsOutPath <> " " <> show cPath
 
     unless optsKeepCFile $
       removeFile cPath

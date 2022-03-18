@@ -14,9 +14,9 @@ import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char(space1)
 import Text.Megaparsec.Char.Lexer qualified as L
 
-import Language.OpLang.Comp(Comp)
+import Control.Monad.Comp(Comp)
+import Data.Opts(optsPath)
 import Language.OpLang.Syntax(Program(..), Op(..), Id)
-import Opts(optsPath)
 
 type Parser = Parsec Void Text
 

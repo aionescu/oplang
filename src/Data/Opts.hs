@@ -1,6 +1,6 @@
 {-# LANGUAGE StrictData #-}
 
-module Opts(Opts(..), getOpts) where
+module Data.Opts(Opts(..), getOpts) where
 
 import Options.Applicative
 import System.FilePath(dropExtension)

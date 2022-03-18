@@ -1,4 +1,4 @@
-module Language.OpLang.Comp(Comp, runComp) where
+module Control.Monad.Comp(Comp, runComp) where
 
 import Control.Applicative(Alternative)
 import Control.Category((>>>))
@@ -10,7 +10,7 @@ import Control.Monad.Writer.Strict(MonadWriter, WriterT, runWriterT)
 import Data.Text(Text)
 import Data.Tuple(swap)
 
-import Opts(Opts)
+import Data.Opts(Opts)
 
 newtype Comp a =
   Comp { runComp' :: ReaderT Opts (MaybeT (WriterT [Text] IO)) a }

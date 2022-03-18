@@ -23,18 +23,18 @@ executable oplang
   main-is: Main.hs
 
   other-modules:
+    Control.Monad.Comp
+    Data.Opts
     Language.OpLang.Checker
-    Language.OpLang.Codegen.C
-    Language.OpLang.Comp
+    Language.OpLang.Codegen
     Language.OpLang.Optimizer
     Language.OpLang.Parser
     Language.OpLang.Syntax
-    Opts
 
   hs-source-dirs: src
 
   build-depends:
-    base >=4.15 && <5
+    base >=4.14 && <5
     , containers ^>= 0.6.2
     , directory ^>= 1.3.6
     , filepath ^>= 1.4.2

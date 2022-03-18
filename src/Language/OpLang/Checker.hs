@@ -12,7 +12,7 @@ import Data.Set qualified as S
 import Data.Text(Text)
 import Data.Text qualified as T
 
-import Language.OpLang.Comp(Comp)
+import Control.Monad.Comp(Comp)
 import Language.OpLang.Syntax(Program(..), Op, Id, calledOps)
 
 enumerate :: Show a => [a] -> Text

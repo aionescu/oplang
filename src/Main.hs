@@ -7,12 +7,12 @@ import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Exit(exitFailure)
 
+import Control.Monad.Comp(Comp, runComp)
+import Data.Opts(getOpts, Opts(..))
 import Language.OpLang.Checker(check)
-import Language.OpLang.Codegen.C qualified as C
-import Language.OpLang.Comp( Comp, runComp)
+import Language.OpLang.Codegen(compile)
 import Language.OpLang.Optimizer(optimize)
 import Language.OpLang.Parser(parse)
-import Opts(getOpts, Opts(..))
 
 getCode :: Comp Text
 getCode = liftIO . T.readFile =<< asks optsPath
@@ -23,7 +23,7 @@ pipeline =
   >>= parse
   >>= check
   >>= optimize
-  >>= C.compile
+  >>= compile
 
 main :: IO ()
 main = do
