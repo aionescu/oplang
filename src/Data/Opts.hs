@@ -18,7 +18,7 @@ data Opts =
 optsParser :: ParserInfo Opts
 optsParser =
   info
-    (infoOption "oplang v0.1.0.0" (short 'v' <> long "version" <> help "Shows version information.")
+    (infoOption "oplang v0.2.0.0" (short 'v' <> long "version" <> help "Shows version information.")
       <*> helper
       <*> programOptions)
     (fullDesc
