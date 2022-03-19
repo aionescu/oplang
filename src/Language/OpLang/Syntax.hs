@@ -1,5 +1,3 @@
-{-# LANGUAGE StrictData #-}
-
 module Language.OpLang.Syntax(Id, Op(..), Program(..), calledOps) where
 
 import Data.Int(Int8)
@@ -10,17 +8,17 @@ import Data.Set qualified as S
 type Id = Char
 
 data Op
-  = Add Int8
-  | Set Int8
-  | Move Int
-  | Pop Word
+  = Add !Int8
+  | Set !Int8
+  | Move !Int
+  | Pop !Word
   | Push
   | Peek
   | Read
-  | Write Word
-  | WithOffset Int Op
-  | Loop [Op]
-  | Call Id
+  | Write !Word
+  | WithOffset !Int !Op
+  | Loop ![Op]
+  | Call !Id
 
 data Program
   = Program

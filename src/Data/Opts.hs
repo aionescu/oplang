@@ -1,5 +1,3 @@
-{-# LANGUAGE StrictData #-}
-
 module Data.Opts(Opts(..), getOpts) where
 
 import Options.Applicative
@@ -8,13 +6,13 @@ import System.Info(os)
 
 data Opts =
   Opts
-  { optsOptPasses :: Word
-  , optsStackSize :: Word
-  , optsTapeSize :: Word
-  , optsKeepCFile :: Bool
-  , optsCCPath :: FilePath
-  , optsOutPath :: FilePath
-  , optsPath :: FilePath
+  { optsOptPasses :: !Word
+  , optsStackSize :: !Word
+  , optsTapeSize :: !Word
+  , optsKeepCFile :: !Bool
+  , optsCCPath :: !FilePath
+  , optsOutPath :: !FilePath
+  , optsPath :: !FilePath
   }
 
 optsParser :: ParserInfo Opts
