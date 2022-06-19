@@ -16,8 +16,8 @@ import System.Process(system)
 import Text.Builder(Builder)
 import Text.Builder qualified as B
 
-import Control.Monad.Comp(Comp)
-import Data.Opts(Opts(..))
+import Comp(Comp)
+import Opts(Opts(..))
 import Language.OpLang.Syntax(Id, Op(..), Program(..))
 
 type CCode = Builder

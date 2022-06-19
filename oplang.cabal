@@ -26,9 +26,9 @@ executable oplang
   main-is: Main.hs
 
   other-modules:
-    Control.Monad.Comp
-    Data.Opts
-    Language.OpLang.Checker
+    Comp
+    Opts
+    Language.OpLang.Validate
     Language.OpLang.Codegen
     Language.OpLang.Optimizer
     Language.OpLang.Parser

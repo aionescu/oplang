@@ -1,4 +1,4 @@
-module Control.Monad.Comp(Comp, runComp) where
+module Comp(Comp, runComp) where
 
 import Control.Applicative(Alternative)
 import Control.Category((>>>))
@@ -10,8 +10,9 @@ import Control.Monad.Writer.Strict(MonadWriter, WriterT, runWriterT)
 import Data.Text(Text)
 import Data.Tuple(swap)
 
-import Data.Opts(Opts)
+import Opts(Opts)
 
+-- The "Compilation" Monad
 newtype Comp a =
   Comp { runComp' :: ReaderT Opts (MaybeT (WriterT [Text] IO)) a }
   deriving newtype

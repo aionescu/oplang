@@ -3,8 +3,8 @@ module Language.OpLang.Optimizer(optimize) where
 import Control.Category((>>>))
 import Control.Monad.Reader(asks)
 
-import Control.Monad.Comp(Comp)
-import Data.Opts(Opts(..))
+import Comp(Comp)
+import Opts(Opts(..))
 import Language.OpLang.Syntax(Program(..), Op(..))
 
 canDoWithOffset :: Op -> Bool

@@ -7,9 +7,9 @@ import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Exit(exitFailure)
 
-import Control.Monad.Comp(Comp, runComp)
-import Data.Opts(getOpts, Opts(..))
-import Language.OpLang.Checker(check)
+import Comp(Comp, runComp)
+import Opts(getOpts, Opts(..))
+import Language.OpLang.Validate(validate)
 import Language.OpLang.Codegen(compile)
 import Language.OpLang.Optimizer(optimize)
 import Language.OpLang.Parser(parse)
@@ -21,7 +21,7 @@ pipeline :: Comp ()
 pipeline =
   getCode
   >>= parse
-  >>= check
+  >>= validate
   >>= optimize
   >>= compile
 

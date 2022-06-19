@@ -1,4 +1,4 @@
-module Language.OpLang.Checker(check) where
+module Language.OpLang.Validate(validate) where
 
 import Control.Monad(guard)
 import Control.Monad.Writer.Strict(tell)
@@ -12,14 +12,14 @@ import Data.Set qualified as S
 import Data.Text(Text)
 import Data.Text qualified as T
 
-import Control.Monad.Comp(Comp)
+import Comp(Comp)
 import Language.OpLang.Syntax(Program(..), Op, Id, calledOps)
 
 enumerate :: Show a => [a] -> Text
 enumerate l = T.pack $ intercalate ", " $ show <$> l
 
-checkUndefinedCalls :: Program -> Comp ()
-checkUndefinedCalls Program{..} = tell errors *> guard (null errors)
+errUndefinedCalls :: Program -> Comp ()
+errUndefinedCalls Program{..} = tell errors *> guard (null errors)
   where
     defined = M.keysSet opDefs
 
@@ -39,8 +39,8 @@ allUsedOps defs seen ops
   where
     used = calledOps ops S.\\ seen
 
-removeUnusedOps :: Program -> Comp Program
-removeUnusedOps p@Program{..} =
+warnUnusedOps :: Program -> Comp Program
+warnUnusedOps p@Program{..} =
   tell warning $> p { opDefs = usedDefs }
   where
     warning =
@@ -52,5 +52,5 @@ removeUnusedOps p@Program{..} =
     usedDefs = M.restrictKeys opDefs usedOps
     usedOps = allUsedOps opDefs S.empty topLevel
 
-check :: Program -> Comp Program
-check p = checkUndefinedCalls p *> removeUnusedOps p
+validate :: Program -> Comp Program
+validate p = errUndefinedCalls p *> warnUnusedOps p
