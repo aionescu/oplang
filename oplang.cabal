@@ -26,13 +26,13 @@ executable oplang
   main-is: Main.hs
 
   other-modules:
-    Comp
     Opts
-    Language.OpLang.Validate
-    Language.OpLang.Codegen
-    Language.OpLang.Optimizer
+    Comp
+    Language.OpLang.IR
     Language.OpLang.Parser
-    Language.OpLang.Syntax
+    Language.OpLang.Validate
+    Language.OpLang.Optimizer
+    Language.OpLang.Codegen
 
   hs-source-dirs: src
 
@@ -46,7 +46,7 @@ executable oplang
     , optparse-applicative ^>= 0.17
     , process ^>= 1.6.14
     , text ^>= 2
-    , text-builder ^>= 0.6.7
+    , text-builder-linear ^>= 0.1
     , transformers ^>= 0.6
 
   ghc-options:
@@ -88,6 +88,7 @@ executable oplang
     MultiParamTypeClasses
     MultiWayIf
     NamedFieldPuns
+    NegativeLiterals
     OverloadedStrings
     PatternSynonyms
     RankNTypes

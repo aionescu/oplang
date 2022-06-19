@@ -13,12 +13,12 @@ import Data.Text(Text)
 import Data.Text qualified as T
 
 import Comp(Comp)
-import Language.OpLang.Syntax(Program(..), Op, Id, calledOps)
+import Language.OpLang.IR(Program(..), Op, Id, NoOff, calledOps)
 
 enumerate :: Show a => [a] -> Text
 enumerate l = T.pack $ intercalate ", " $ show <$> l
 
-errUndefinedCalls :: Program -> Comp ()
+errUndefinedCalls :: Program NoOff -> Comp ()
 errUndefinedCalls Program{..} = tell errors *> guard (null errors)
   where
     defined = M.keysSet opDefs
@@ -32,14 +32,14 @@ errUndefinedCalls Program{..} = tell errors *> guard (null errors)
 
     errors = toMsg <$> filter (not . S.null . snd) (undefinedInTopLevel : undefinedInDefs)
 
-allUsedOps :: Map Id [Op] -> Set Id -> [Op] -> Set Id
+allUsedOps :: Map Id [Op NoOff] -> Set Id -> [Op NoOff] -> Set Id
 allUsedOps defs seen ops
   | S.null used = seen
   | otherwise = foldMap (allUsedOps defs (seen <> used) . (defs M.!)) used
   where
     used = calledOps ops S.\\ seen
 
-warnUnusedOps :: Program -> Comp Program
+warnUnusedOps :: Program NoOff -> Comp (Program NoOff)
 warnUnusedOps p@Program{..} =
   tell warning $> p { opDefs = usedDefs }
   where
@@ -52,5 +52,5 @@ warnUnusedOps p@Program{..} =
     usedDefs = M.restrictKeys opDefs usedOps
     usedOps = allUsedOps opDefs S.empty topLevel
 
-validate :: Program -> Comp Program
+validate :: Program NoOff -> Comp (Program NoOff)
 validate p = errUndefinedCalls p *> warnUnusedOps p

@@ -1,6 +1,0 @@
-# Keeps printing 'a' until a stack overflow occurs.
-# Should result in an infinite loop if tail recursion is implemented properly.
-
-a { ++++ ++++ [> ++++ ++++ ++++ < -] > + : }
-m { ;:. m }
-a m

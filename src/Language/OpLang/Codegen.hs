@@ -4,85 +4,80 @@ import Control.Monad(unless)
 import Control.Monad.IO.Class(liftIO)
 import Control.Monad.Reader(ask)
 import Data.Char(ord)
-import Data.Foldable(fold)
 import Data.Map.Strict qualified as M
 import Data.Text(Text)
-import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Numeric(showHex)
 import System.Directory(removeFile)
 import System.FilePath(dropExtension)
 import System.Process(system)
-import Text.Builder(Builder)
-import Text.Builder qualified as B
+import Data.Text.Builder.Linear(Builder, fromDec, runBuilder)
 
 import Comp(Comp)
 import Opts(Opts(..))
-import Language.OpLang.Syntax(Id, Op(..), Program(..))
+import Language.OpLang.IR(Id, Op(..), Off, Program(..))
+import Data.Semigroup(stimes)
 
 type CCode = Builder
 
-showC :: Show a => a -> CCode
-showC = B.string . show
-
 cName :: Id -> CCode
-cName n = "o" <> B.string (showHex (ord n) "")
+cName n = "o" <> fromDec (ord n)
 
 programPrologue :: Word -> Word -> CCode
 programPrologue stackSize tapeSize =
-  "#include<stdio.h>\n#include<string.h>\n#define S "
-  <> showC stackSize
-  <> "\n#define T "
-  <> showC tapeSize
-  <> "\nchar s_[S],*s=s_;"
+  "#include<stdio.h>\n#define T " <> fromDec tapeSize
+  <> "\nchar q[" <> fromDec stackSize <> "],*s=q;"
 
 compileProto :: Id -> CCode
 compileProto name = "void " <> cName name <> "();"
 
-compileDef :: Id -> [Op] -> CCode
-compileDef name body = "void " <> cName name <> "(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps body <> "}"
+compileDef :: Id -> [Op Off] -> CCode
+compileDef name body = "void " <> cName name <> "(){char u[T]={0},*t=u;" <> compileOps body <> "}"
 
-compileMain :: [Op] -> CCode
-compileMain body = "int main(){char t_[T],*t=t_;memset(t,0,T);" <> compileOps body <> "return 0;}"
+compileMain :: [Op Off] -> CCode
+compileMain body = "int main(){char u[T]={0},*t=u;" <> compileOps body <> "return 0;}"
 
-compileOps :: [Op] -> CCode
-compileOps = foldMap $ compileOp "t"
+compileOps :: [Op Off] -> CCode
+compileOps = foldMap compileOp
 
-sign :: (Ord a, Num a) => a -> CCode
-sign n
-  | n < 0 = "-"
-  | otherwise = "+"
+tape :: Int -> CCode
+tape 0 = "*t"
+tape off = "t[" <> fromDec off <> "]"
 
-repeatText :: Word -> Text -> CCode
-repeatText n = B.text . T.concat . replicate (fromIntegral n)
+compileOp :: Op Off -> CCode
+compileOp = \case
+    Add o n
+      | n > 0 -> tape o <> "+=" <> fromDec n <> ";"
+      | otherwise -> tape o <> "-=" <> fromDec (-n) <> ";"
+    Set o n -> tape o <> "=" <> fromDec n <> ";"
+    Pop o n -> tape o <> "=*(s-=" <> fromDec n <> ");"
+    Push o -> "*(s++)=" <> tape o <> ";"
+    Peek o -> tape o <> "=*(s-1);"
+    Read o -> "scanf(\"%c\",&" <> tape o <> ");"
+    Write o 1 -> "printf(\"%c\"," <> tape o <> ");"
+    Write o n -> "{char c=" <> tape o <> ";printf(\"" <> stimes n "%c" <> "\"" <> stimes n ",c" <> ");}"
+    Move n
+      | n > 0 -> "t+=" <> fromDec n <> ";"
+      | otherwise -> "t-=" <> fromDec (-n) <> ";"
+    AddTimes o 1 -> tape o <> "+=*t;*t=0;"
+    AddTimes o -1 -> tape o <> "-=*t;*t=0;"
+    AddTimes o n
+      | n > 0 -> tape o <> "+=*t*" <> fromDec n <> ";*t=0;"
+      | otherwise -> tape o <> "-=*t*" <> fromDec (-n) <> ";*t=0;"
+    Loop ops -> "while(*t){" <> compileOps ops <> "}"
+    Call c -> cName c <> "();"
 
-compileOp :: CCode -> Op -> CCode
-compileOp tape = \case
-  Add n -> "*" <> tape <> sign n <> "=" <> showC (abs n) <> ";"
-  Move n -> tape <> sign n <> "=" <> showC (abs n) <> ";"
-  Set n -> "*" <> tape <> "=" <> showC n <> ";"
-  Pop n -> "*" <> tape <> "=*(s-=" <> showC n <> ");"
-  Push -> "*(s++)=*" <> tape <> ";"
-  Peek -> "*" <> tape <> "=*(s-1);"
-  WithOffset off op -> compileOp ("(" <> tape <> "+" <> showC off <> ")") op
-  Loop ops -> "while(*t){" <> compileOps ops <> "}"
-  Read -> "scanf(\"%c\"," <> tape <> ");"
-  Write 1 -> "printf(\"%c\",*" <> tape <> ");"
-  Write n -> "{char c=*" <> tape <> ";printf(\"" <> repeatText n "%c" <> "\"" <> repeatText n ",c" <> ");}"
-  Call c -> cName c <> "();"
-
-codegen :: Word -> Word -> Program -> Text
+codegen :: Word -> Word -> Program Off -> Text
 codegen stackSize tapeSize Program{..} =
-  B.run
+  runBuilder
   $ programPrologue stackSize tapeSize
-  <> fold (compileProto <$> M.keys opDefs)
-  <> fold (M.mapWithKey compileDef opDefs)
+  <> foldMap compileProto (M.keys opDefs)
+  <> M.foldMapWithKey compileDef opDefs
   <> compileMain topLevel
 
 cFile :: FilePath -> FilePath
 cFile file = dropExtension file <> ".c"
 
-compile :: Program -> Comp ()
+compile :: Program Off -> Comp ()
 compile p = do
   Opts{..} <- ask
   let cPath = cFile optsPath

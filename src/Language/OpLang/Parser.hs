@@ -16,7 +16,7 @@ import Text.Megaparsec.Char.Lexer qualified as L
 
 import Comp(Comp)
 import Opts(optsPath)
-import Language.OpLang.Syntax(Program(..), Op(..), Id)
+import Language.OpLang.IR(Program(..), Op(..), Id, NoOff)
 
 type Parser = Parsec Void Text
 
@@ -32,36 +32,36 @@ symbol = L.symbol ws
 reserved :: [Char]
 reserved = "+-<>,.;:[]{}"
 
-intrinsic :: Parser Op
+intrinsic :: Parser (Op NoOff)
 intrinsic =
   choice
-  [ symbol "+" $> Add 1
-  , symbol "-" $> Add (-1)
-  , symbol "<" $> Move (-1)
+  [ symbol "+" $> Add () 1
+  , symbol "-" $> Add () -1
+  , symbol "<" $> Move -1
   , symbol ">" $> Move 1
-  , symbol "," $> Read
-  , symbol "." $> Write 1
-  , symbol ";" $> Pop 1
-  , symbol ":" $> Push
+  , symbol "," $> Read ()
+  , symbol "." $> Write () 1
+  , symbol ";" $> Pop () 1
+  , symbol ":" $> Push ()
   ]
   <?> "intrinsic operator"
 
-block :: Text -> Text -> Parser [Op]
+block :: Text -> Text -> Parser [Op NoOff]
 block b e = between (symbol b) (symbol e) $ many op
 
-loop :: Parser Op
+loop :: Parser (Op NoOff)
 loop = Loop <$> block "[" "]" <?> "loop"
 
 custom :: Parser Char
 custom = lexeme (satisfy (`notElem` reserved) <?> "custom operator")
 
-op :: Parser Op
+op :: Parser (Op NoOff)
 op = choice [try loop, intrinsic, Call <$> custom] <?> "operator"
 
-def :: Parser (Id, [Op])
+def :: Parser (Id, [Op NoOff])
 def = (,) <$> lexeme custom <*> block "{" "}" <?> "definition"
 
-defs :: Parser (Map Id [Op])
+defs :: Parser (Map Id [Op NoOff])
 defs = many (try def) >>= toMap
   where
     toMap ds
@@ -72,13 +72,13 @@ defs = many (try def) >>= toMap
         set = S.fromList ids
         unique = S.size set == length ids
 
-program :: Parser Program
+program :: Parser (Program NoOff)
 program = Program <$> defs <*> (many op <?> "toplevel")
 
-programFull :: Parser Program
+programFull :: Parser (Program NoOff)
 programFull = ws *> program <* eof
 
-parse :: Text -> Comp Program
+parse :: Text -> Comp (Program NoOff)
 parse code = do
   file <- asks optsPath
 
