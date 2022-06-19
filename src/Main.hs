@@ -7,12 +7,12 @@ import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Exit(exitFailure)
 
-import Comp(Comp, runComp)
 import Opts(getOpts, Opts(..))
-import Language.OpLang.Validate(validate)
-import Language.OpLang.Codegen(compile)
-import Language.OpLang.Optimizer(optimize)
+import Comp(Comp, runComp)
 import Language.OpLang.Parser(parse)
+import Language.OpLang.Validate(validate)
+import Language.OpLang.Optimizer(optimize)
+import Language.OpLang.Codegen(compile)
 
 getCode :: Comp Text
 getCode = liftIO . T.readFile =<< asks optsPath

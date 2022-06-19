@@ -2,18 +2,19 @@ module Language.OpLang.Optimizer(optimize) where
 
 import Control.Category((>>>))
 import Control.Monad.Reader(asks)
+import Control.Monad.ST(ST, runST)
+import Data.Foldable(fold)
+import Data.Functor(($>))
+import Data.STRef(STRef, readSTRef, newSTRef, writeSTRef, modifySTRef')
 
-import Comp(Comp)
 import Opts(Opts(..))
+import Comp(Comp)
 import Language.OpLang.IR(Program(..), Op(..), NoOff, Off)
-import Control.Monad.State.Strict (State, get, modify', put, evalState)
-import Data.Functor (($>))
-import Data.Foldable (fold)
 
-peephole :: [Op NoOff] -> (Bool, [Op NoOff])
+peephole :: [Op NoOff] -> (# Bool, [Op NoOff] #)
 peephole = go False []
   where
-    go :: Bool -> [Op NoOff] -> [Op NoOff] -> (Bool, [Op NoOff])
+    go :: Bool -> [Op NoOff] -> [Op NoOff] -> (# Bool, [Op NoOff] #)
     go changed acc ops' =
       case ops' of
         Add _ 0 : ops -> go True acc ops
@@ -44,11 +45,11 @@ peephole = go False []
         l@(Loop _) : Loop _ : ops -> go True acc (l : ops)
         Loop [l@(Loop _)] : ops -> go True acc (l : ops)
         Loop l : ops ->
-          let (changed', l') = go False [] l
+          let (# changed', l' #) = go False [] l
           in go changed' (Loop l' : acc) ops
 
         op : ops -> go changed (op : acc) ops
-        [] -> (changed, reverse acc)
+        [] -> (# changed, reverse acc #)
 
 peepholeN :: Word -> [Op NoOff] -> [Op NoOff]
 peepholeN 0 ops = ops
@@ -58,26 +59,31 @@ peepholeN n ops =
   else ops'
 
   where
-    (changed, ops') = peephole ops
+    (# changed, ops' #) = peephole ops
 
 removeSet0 :: [Op NoOff] -> [Op NoOff]
 removeSet0 (Set _ 0 : ops) = ops
 removeSet0 ops = ops
 
-sync :: State Off [Op Off]
-sync = get >>= \case
+sync :: STRef s Off -> ST s [Op Off]
+sync r = readSTRef r >>= \case
   0 -> pure []
-  n -> put 0 $> [Move n]
+  n -> writeSTRef r 0 $> [Move n]
 
-withOffsetLoop :: [Op NoOff] -> State Off (Op Off)
-withOffsetLoop ops = (\a b -> Loop $ fold a <> b) <$> traverse withOffset ops <*> sync
+withOffsetLoop :: STRef s Off -> [Op NoOff] -> ST s (Op Off)
+withOffsetLoop r ops = (\a b -> mkLoop $ fold a <> b) <$> traverse (withOffset r) ops <*> sync r
+  where
+    mkLoop [Add o n, Add 0 -1] = AddTimes o n
+    mkLoop [Add 0 -1, Add o n] = AddTimes o n
+    mkLoop l = Loop l
 
 withOffsetBody :: [Op NoOff] -> [Op Off]
-withOffsetBody = fold . (`evalState` 0) . traverse withOffset
+withOffsetBody ops = fold $ runST do
+  r <- newSTRef 0
+  traverse (withOffset r) ops
 
-withOffset :: Op NoOff -> State Off [Op Off]
-withOffset op = do
-  off <- get
+withOffset :: STRef s Off -> Op NoOff -> ST s [Op Off]
+withOffset r op = readSTRef r >>= \off ->
   case op of
     Add _ n -> pure [Add off n]
     Set _ n -> pure [Set off n]
@@ -86,20 +92,13 @@ withOffset op = do
     Peek _ -> pure [Peek off]
     Read _ -> pure [Read off]
     Write _ n -> pure [Write off n]
-    Move n -> modify' (+ n) $> []
+    Move n -> modifySTRef' r (+ n) $> []
     AddTimes{} -> error "withOffset: Unreachable"
-    Loop ops -> (\a b -> a <> [b]) <$> sync <*> withOffsetLoop ops
+    Loop ops -> (\a b -> a <> [b]) <$> sync r <*> withOffsetLoop r ops
     Call c -> pure [Call c]
 
-simplifyAddTimes :: Op Off -> Op Off
-simplifyAddTimes (Loop [Add o n, Add 0 -1]) = AddTimes o n
-simplifyAddTimes (Loop ops) = Loop $ simplifyAddTimes <$> ops
-simplifyAddTimes op = op
-
 optimizeBody :: Word -> [Op NoOff] -> [Op Off]
-optimizeBody passes ops =
-  simplifyAddTimes
-  <$> withOffsetBody (removeSet0 $ peepholeN passes $ Set () 0 : ops)
+optimizeBody passes ops = withOffsetBody (removeSet0 $ peepholeN passes $ Set () 0 : ops)
 
 optimize :: Program NoOff -> Comp (Program Off)
 optimize Program{..} =

@@ -5,6 +5,7 @@ import Control.Monad.IO.Class(liftIO)
 import Control.Monad.Reader(ask)
 import Data.Char(ord)
 import Data.Map.Strict qualified as M
+import Data.Semigroup(stimes)
 import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Directory(removeFile)
@@ -12,10 +13,9 @@ import System.FilePath(dropExtension)
 import System.Process(system)
 import Data.Text.Builder.Linear(Builder, fromDec, runBuilder)
 
-import Comp(Comp)
 import Opts(Opts(..))
+import Comp(Comp)
 import Language.OpLang.IR(Id, Op(..), Off, Program(..))
-import Data.Semigroup(stimes)
 
 type CCode = Builder
 

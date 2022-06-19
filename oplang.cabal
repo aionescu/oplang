@@ -101,6 +101,7 @@ executable oplang
     TypeFamilies
     TypeFamilyDependencies
     TypeOperators
+    UnboxedTuples
     ViewPatterns
 
   default-language: Haskell2010
