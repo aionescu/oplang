@@ -6,7 +6,7 @@ OpLang is a stack-based esoteric programming language based on [Brainfuck](https
 
 ## Installing
 
-The compiler is available on [Hackage](https://hackage.haskell.org/package/oplang), and can be installed via [`cabal`](https://www.haskell.org/cabal/).
+The compiler is available on [Hackage](https://hackage.haskell.org/package/oplang), and can be installed via [cabal](https://www.haskell.org/cabal/) (which can itself be installed via [ghcup](https://www.haskell.org/ghcup/)).
 
 ```sh
 cabal install oplang
@@ -80,7 +80,7 @@ a { ; +++ : }
 ,: a ;.
 ```
 
-For more example programs, see the [Examples](Examples/) folder.
+For more example programs, see the [examples](examples/) folder.
 
 ## License
 
