@@ -1,5 +1,7 @@
-# Reads a single-digit number, then calculates its factorial.
-# e.g. for input '5', prints 'x' (ASCII value of 120 = fact(5))
+# Reads a single-digit number n, then prints factorial(n) '*' chars.
+# To easily check the value, you can pipe the output into `wc -c`, like so:
+# `echo 5 | ./Factorial.out | wc -c`
+# ^ Should print 120
 
 0 { +++ +++ [> ++++ ++++ < -] > : }
 s { ; > ; [- < - >] < : }
@@ -8,4 +10,6 @@ r { 0 , : s }
 m { ; > ; < [->[->+>+<<]>[-<+>]<<]>[-]>>[-<<<+>>>]<<< : }
 f { ; > + < [: > : m ; < -] > : }
 
-rf ;.
+* { +++ +++ + [> +++ +++ < -] > : }
+
+*; > rf ; [ < . > - ]
