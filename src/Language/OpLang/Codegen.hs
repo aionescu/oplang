@@ -5,7 +5,6 @@ import Control.Monad.IO.Class(liftIO)
 import Control.Monad.Reader(ask)
 import Data.Char(ord)
 import Data.Map.Strict qualified as M
-import Data.Semigroup(stimes)
 import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Directory(removeFile)
@@ -13,9 +12,9 @@ import System.FilePath(dropExtension)
 import System.Process(system)
 import Data.Text.Builder.Linear(Builder, fromDec, runBuilder)
 
-import Opts(Opts(..))
-import Comp(Comp)
-import Language.OpLang.IR(Id, Op(..), Off, Program(..))
+import Opts
+import Comp
+import Language.OpLang.IR
 
 type CCode = Builder
 
@@ -30,43 +29,41 @@ programPrologue stackSize tapeSize =
 compileProto :: Id -> CCode
 compileProto name = "void " <> cName name <> "();"
 
-compileDef :: Id -> [Op Off] -> CCode
+compileDef :: Id -> [Instr] -> CCode
 compileDef name body = "void " <> cName name <> "(){char u[T]={0},*t=u;" <> compileOps body <> "}"
 
-compileMain :: [Op Off] -> CCode
+compileMain :: [Instr] -> CCode
 compileMain body = "int main(){char u[T]={0},*t=u;" <> compileOps body <> "return 0;}"
 
-compileOps :: [Op Off] -> CCode
+compileOps :: [Instr] -> CCode
 compileOps = foldMap compileOp
 
-tape :: Int -> CCode
+tape :: Offset -> CCode
 tape 0 = "*t"
 tape off = "t[" <> fromDec off <> "]"
 
-compileOp :: Op Off -> CCode
+compileOp :: Instr -> CCode
 compileOp = \case
-    Add o n
+    Add n o
       | n > 0 -> tape o <> "+=" <> fromDec n <> ";"
       | otherwise -> tape o <> "-=" <> fromDec (-n) <> ";"
-    Set o n -> tape o <> "=" <> fromDec n <> ";"
-    Pop o n -> tape o <> "=*(s-=" <> fromDec n <> ");"
+    Set n o -> tape o <> "=" <> fromDec n <> ";"
+    Pop o -> tape o <> "=*(--s);"
     Push o -> "*(s++)=" <> tape o <> ";"
-    Peek o -> tape o <> "=*(s-1);"
     Read o -> "scanf(\"%c\",&" <> tape o <> ");"
-    Write o 1 -> "printf(\"%c\"," <> tape o <> ");"
-    Write o n -> "{char c=" <> tape o <> ";printf(\"" <> stimes n "%c" <> "\"" <> stimes n ",c" <> ");}"
+    Write o -> "printf(\"%c\"," <> tape o <> ");"
     Move n
       | n > 0 -> "t+=" <> fromDec n <> ";"
       | otherwise -> "t-=" <> fromDec (-n) <> ";"
-    AddTimes o 1 -> tape o <> "+=*t;*t=0;"
-    AddTimes o -1 -> tape o <> "-=*t;*t=0;"
-    AddTimes o n
+    AddCell 1 o -> tape o <> "+=*t;*t=0;"
+    AddCell -1 o -> tape o <> "-=*t;*t=0;"
+    AddCell n o
       | n > 0 -> tape o <> "+=*t*" <> fromDec n <> ";*t=0;"
       | otherwise -> tape o <> "-=*t*" <> fromDec (-n) <> ";*t=0;"
     Loop ops -> "while(*t){" <> compileOps ops <> "}"
     Call c -> cName c <> "();"
 
-codegen :: Word -> Word -> Program Off -> Text
+codegen :: Word -> Word -> Program Instr -> Text
 codegen stackSize tapeSize Program{..} =
   runBuilder
   $ programPrologue stackSize tapeSize
@@ -77,7 +74,7 @@ codegen stackSize tapeSize Program{..} =
 cFile :: FilePath -> FilePath
 cFile file = dropExtension file <> ".c"
 
-compile :: Program Off -> Comp ()
+compile :: Program Instr -> Comp ()
 compile p = do
   Opts{..} <- ask
   let cPath = cFile optsPath

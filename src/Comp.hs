@@ -1,7 +1,6 @@
-module Comp(Comp, runComp) where
+module Comp where
 
 import Control.Applicative(Alternative)
-import Control.Category((>>>))
 import Control.Monad(MonadPlus)
 import Control.Monad.IO.Class(MonadIO)
 import Control.Monad.Reader(MonadReader, ReaderT, runReaderT)
@@ -10,7 +9,7 @@ import Control.Monad.Writer.Strict(MonadWriter, WriterT, runWriterT)
 import Data.Text(Text)
 import Data.Tuple(swap)
 
-import Opts(Opts)
+import Opts
 
 -- The "Compilation" Monad
 newtype Comp a =
@@ -26,10 +25,5 @@ newtype Comp a =
     , MonadIO
     )
 
-runComp :: Opts -> Comp a -> IO ([Text], Maybe a)
-runComp opts =
-  runComp'
-  >>> flip runReaderT opts
-  >>> runMaybeT
-  >>> runWriterT
-  >>> fmap swap
+runComp :: Comp a -> Opts -> IO ([Text], Maybe a)
+runComp (Comp comp) opts = swap <$> runWriterT (runMaybeT $ runReaderT comp opts)

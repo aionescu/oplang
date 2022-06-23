@@ -1,4 +1,4 @@
-module Language.OpLang.Parser(parse) where
+module Language.OpLang.Parse(parse) where
 
 import Control.Monad.Reader(asks)
 import Control.Monad.Writer.Strict(tell)
@@ -14,9 +14,9 @@ import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char(space1)
 import Text.Megaparsec.Char.Lexer qualified as L
 
-import Opts(optsPath)
-import Comp(Comp)
-import Language.OpLang.IR(Program(..), Op(..), Id, NoOff)
+import Opts
+import Comp
+import Language.OpLang.IR
 
 type Parser = Parsec Void Text
 
@@ -32,36 +32,36 @@ symbol = L.symbol ws
 reserved :: [Char]
 reserved = "+-<>,.;:[]{}"
 
-intrinsic :: Parser (Op NoOff)
+intrinsic :: Parser Op
 intrinsic =
   choice
-  [ symbol "+" $> Add () 1
-  , symbol "-" $> Add () -1
-  , symbol "<" $> Move -1
-  , symbol ">" $> Move 1
-  , symbol "," $> Read ()
-  , symbol "." $> Write () 1
-  , symbol ";" $> Pop () 1
-  , symbol ":" $> Push ()
+  [ symbol "+" $> Incr
+  , symbol "-" $> Decr
+  , symbol "<" $> MoveL
+  , symbol ">" $> MoveR
+  , symbol "," $> Read'
+  , symbol "." $> Write'
+  , symbol ";" $> Pop'
+  , symbol ":" $> Push'
   ]
   <?> "intrinsic operator"
 
-block :: Text -> Text -> Parser [Op NoOff]
+block :: Text -> Text -> Parser [Op]
 block b e = between (symbol b) (symbol e) $ many op
 
-loop :: Parser (Op NoOff)
-loop = Loop <$> block "[" "]" <?> "loop"
+loop :: Parser Op
+loop = Loop' <$> block "[" "]" <?> "loop"
 
 custom :: Parser Char
 custom = lexeme (satisfy (`notElem` reserved) <?> "custom operator")
 
-op :: Parser (Op NoOff)
-op = choice [try loop, intrinsic, Call <$> custom] <?> "operator"
+op :: Parser Op
+op = choice [loop, intrinsic, Call' <$> custom] <?> "operator"
 
-def :: Parser (Id, [Op NoOff])
+def :: Parser (Id, [Op])
 def = (,) <$> lexeme custom <*> block "{" "}" <?> "definition"
 
-defs :: Parser (Map Id [Op NoOff])
+defs :: Parser (Map Id [Op])
 defs = many (try def) >>= toMap
   where
     toMap ds
@@ -72,16 +72,15 @@ defs = many (try def) >>= toMap
         set = S.fromList ids
         unique = S.size set == length ids
 
-program :: Parser (Program NoOff)
+program :: Parser (Program Op)
 program = Program <$> defs <*> (many op <?> "toplevel")
 
-programFull :: Parser (Program NoOff)
+programFull :: Parser (Program Op)
 programFull = ws *> program <* eof
 
-parse :: Text -> Comp (Program NoOff)
+parse :: Text -> Comp (Program Op)
 parse code = do
   file <- asks optsPath
-
   case runParser programFull file code of
     Left e -> tell [T.pack $ errorBundlePretty e] *> empty
     Right p -> pure p

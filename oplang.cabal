@@ -29,9 +29,9 @@ executable oplang
     Opts
     Comp
     Language.OpLang.IR
-    Language.OpLang.Parser
+    Language.OpLang.Parse
     Language.OpLang.Validate
-    Language.OpLang.Optimizer
+    Language.OpLang.Optimize
     Language.OpLang.Codegen
 
   hs-source-dirs: src

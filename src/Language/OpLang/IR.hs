@@ -1,38 +1,40 @@
 {-# LANGUAGE StrictData #-}
 
-module Language.OpLang.IR(Id, NoOff, Off, Op(..), Program(..), calledOps) where
+module Language.OpLang.IR where
 
 import Data.Int(Int8)
 import Data.Map.Strict(Map)
-import Data.Set(Set)
-import Data.Set qualified as S
 
 type Id = Char
+type Val = Int8
+type Offset = Int
 
-type NoOff = ()
-type Off = Int
+data Op
+  = Incr
+  | Decr
+  | MoveL
+  | MoveR
+  | Read'
+  | Write'
+  | Pop'
+  | Push'
+  | Loop' [Op]
+  | Call' Id
 
-data Op o
-  = Add o Int8
-  | Set o Int8
-  | Pop o Word
-  | Push o
-  | Peek o
-  | Read o
-  | Write o Word
-  | Move Off
-  | AddTimes Off Int8
-  | Loop [Op o]
+data Instr
+  = Add Val Offset
+  | Set Val Offset
+  | Read Offset
+  | Write Offset
+  | Pop Offset
+  | Push Offset
+  | Move Offset
+  | Loop [Instr]
   | Call Id
+  | AddCell Val Offset
 
-data Program o
+data Program op
   = Program
-  { opDefs :: Map Id [Op o]
-  , topLevel :: [Op o]
+  { opDefs :: Map Id [op]
+  , topLevel :: [op]
   }
-
-calledOps :: [Op o] -> Set Id
-calledOps = foldMap \case
-  Call op -> S.singleton op
-  Loop ops -> calledOps ops
-  _ -> S.empty

@@ -1,3 +1,5 @@
+{-# LANGUAGE StrictData #-}
+
 module Opts(Opts(..), getOpts) where
 
 import Options.Applicative
@@ -6,13 +8,12 @@ import System.Info(os)
 
 data Opts =
   Opts
-  { optsOptPasses :: !Word
-  , optsStackSize :: !Word
-  , optsTapeSize :: !Word
-  , optsKeepCFile :: !Bool
-  , optsCCPath :: !FilePath
-  , optsOutPath :: !FilePath
-  , optsPath :: !FilePath
+  { optsStackSize :: Word
+  , optsTapeSize :: Word
+  , optsKeepCFile :: Bool
+  , optsCCPath :: FilePath
+  , optsOutPath :: FilePath
+  , optsPath :: FilePath
   }
 
 optsParser :: ParserInfo Opts
@@ -29,12 +30,11 @@ optsParser =
     programOptions :: Parser Opts
     programOptions =
       Opts
-      <$> option auto (short 'O' <> long "opt-passes" <> metavar "PASSES" <> value 64 <> help "Specify the number of optimization passes to perform.")
-      <*> option auto (short 'S' <> long "stack-size" <> metavar "STACK" <> value 4096 <> help "Specify the size of the stack.")
-      <*> option auto (short 'T' <> long "tape-size" <> metavar "TAPE" <> value 65536 <> help "Specify the size of the memory tape.")
-      <*> switch (short 'K' <> long "keep-c-file" <> help "Specifiy whether to keep the resulting C file.")
-      <*> strOption (short 'C' <> long "cc-path" <> metavar "CC_PATH" <> value "cc" <> help "Specify the path of the C compiler to use.")
-      <*> strOption (short 'o' <> long "out-path" <> metavar "OUT_PATH" <> value "" <> help "Specify the path of the resulting executable.")
+      <$> option auto (long "stack-size" <> value 4096 <> metavar "SIZE" <> help "Size of the stack.")
+      <*> option auto (long "tape-size" <> value 65536 <> metavar "SIZE" <> help "Size of the memory tape.")
+      <*> switch (long "keep-c-file" <> help "Keep the resulting C file.")
+      <*> strOption (long "cc-path" <> value "cc" <> metavar "PATH" <> help "Path of the C compiler to use.")
+      <*> strOption (short 'o' <> long "out-path" <> value "" <> metavar "PATH" <> help "Path of the resulting executable.")
       <*> strArgument (metavar "PATH" <> help "The source file to compile.")
 
 withExt :: FilePath -> FilePath

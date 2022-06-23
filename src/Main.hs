@@ -1,34 +1,31 @@
 module Main(main) where
 
+import Control.Category((>>>))
+import Control.Monad((>=>))
 import Control.Monad.IO.Class(liftIO)
 import Control.Monad.Reader(asks)
+import Data.Bifoldable(bitraverse_)
 import Data.Foldable(traverse_)
 import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Exit(exitFailure)
 
-import Opts(getOpts, Opts(..))
-import Comp(Comp, runComp)
-import Language.OpLang.Parser(parse)
-import Language.OpLang.Validate(validate)
-import Language.OpLang.Optimizer(optimize)
-import Language.OpLang.Codegen(compile)
+import Opts
+import Comp
+import Language.OpLang.Parse
+import Language.OpLang.Validate
+import Language.OpLang.Optimize
+import Language.OpLang.Codegen
 
 getCode :: Comp Text
 getCode = liftIO . T.readFile =<< asks optsPath
 
 pipeline :: Comp ()
 pipeline =
-  getCode
-  >>= parse
-  >>= validate
-  >>= optimize
-  >>= compile
+  getCode >>= (parse >=> validate >=> optimize >>> compile)
 
 main :: IO ()
-main = do
-  opts <- getOpts
-  (warnings, result) <- runComp opts pipeline
-
-  traverse_ T.putStrLn warnings
-  maybe exitFailure pure result
+main =
+  getOpts
+  >>= runComp pipeline
+  >>= bitraverse_ (traverse_ T.putStrLn) (maybe exitFailure pure)
