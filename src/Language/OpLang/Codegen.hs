@@ -42,24 +42,27 @@ tape :: Offset -> CCode
 tape 0 = "*t"
 tape off = "t[" <> fromDec off <> "]"
 
+plusEq :: (Ord a, Num a) => a -> CCode
+plusEq n
+  | n < 0 = "-="
+  | otherwise = "+="
+
+addCell :: Val -> Offset -> Offset -> CCode
+addCell v o o' = tape o <> plusEq v <> tape o' <> times (abs v) <> ";" <> tape o' <> "=0;"
+  where
+    times 1 = ""
+    times n = "*" <> fromDec n
+
 compileOp :: Instr -> CCode
 compileOp = \case
-    Add n o
-      | n > 0 -> tape o <> "+=" <> fromDec n <> ";"
-      | otherwise -> tape o <> "-=" <> fromDec (-n) <> ";"
+    Add n o -> tape o <> plusEq n <> fromDec (abs n) <> ";"
     Set n o -> tape o <> "=" <> fromDec n <> ";"
     Pop o -> tape o <> "=*(--s);"
     Push o -> "*(s++)=" <> tape o <> ";"
     Read o -> "scanf(\"%c\",&" <> tape o <> ");"
     Write o -> "printf(\"%c\"," <> tape o <> ");"
-    Move n
-      | n > 0 -> "t+=" <> fromDec n <> ";"
-      | otherwise -> "t-=" <> fromDec (-n) <> ";"
-    AddCell 1 o -> tape o <> "+=*t;*t=0;"
-    AddCell -1 o -> tape o <> "-=*t;*t=0;"
-    AddCell n o
-      | n > 0 -> tape o <> "+=*t*" <> fromDec n <> ";*t=0;"
-      | otherwise -> tape o <> "-=*t*" <> fromDec (-n) <> ";*t=0;"
+    Move n -> "t" <> plusEq n <> fromDec (abs n) <> ";"
+    AddCell n o o' -> addCell n o o'
     Loop ops -> "while(*t){" <> compileOps ops <> "}"
     Call c -> cName c <> "();"
 

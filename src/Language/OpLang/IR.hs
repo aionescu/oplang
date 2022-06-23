@@ -31,7 +31,7 @@ data Instr
   | Move Offset
   | Loop [Instr]
   | Call Id
-  | AddCell Val Offset
+  | AddCell Val Offset Offset
 
 data Program op
   = Program
