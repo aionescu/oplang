@@ -26,13 +26,13 @@ executable oplang
   main-is: Main.hs
 
   other-modules:
-    Opts
-    Comp
+    Language.OpLang.Codegen
+    Language.OpLang.CompT
     Language.OpLang.IR
+    Language.OpLang.Optimize
     Language.OpLang.Parse
     Language.OpLang.Validate
-    Language.OpLang.Optimize
-    Language.OpLang.Codegen
+    Opts
 
   hs-source-dirs: src
 
@@ -59,6 +59,12 @@ executable oplang
     -Wprepositive-qualified-module
     -Wmissing-deriving-strategies
     -Wunused-packages
+    -Widentities
+    -Wredundant-constraints
+    -Wunticked-promoted-constructors
+    -Wpartial-fields
+    -Wmissing-exported-signatures
+    -Wno-name-shadowing
 
   default-extensions:
     ApplicativeDo
@@ -85,11 +91,14 @@ executable oplang
     InstanceSigs
     KindSignatures
     LambdaCase
+    MagicHash
     MultiParamTypeClasses
     MultiWayIf
     NamedFieldPuns
     NegativeLiterals
+    NoMonomorphismRestriction
     OverloadedStrings
+    PartialTypeSignatures
     PatternSynonyms
     RankNTypes
     RecordWildCards

@@ -1,6 +1,6 @@
 module Language.OpLang.Validate(validate) where
 
-import Control.Monad(guard)
+import Control.Monad(guard, unless)
 import Control.Monad.Writer.Strict(tell)
 import Data.Bifunctor(bimap)
 import Data.Functor(($>))
@@ -12,7 +12,7 @@ import Data.Set qualified as S
 import Data.Text(Text)
 import Data.Text qualified as T
 
-import Comp
+import Language.OpLang.CompT
 import Language.OpLang.IR
 
 calledOps :: [Op] -> Set Id
@@ -24,7 +24,7 @@ calledOps = foldMap \case
 enumerate :: Show a => [a] -> Text
 enumerate l = T.pack $ intercalate ", " $ show <$> l
 
-errUndefinedCalls :: Program Op -> Comp ()
+errUndefinedCalls :: Monad m => Program Op -> CompT m ()
 errUndefinedCalls Program{..} = tell errors *> guard (null errors)
   where
     defined = M.keysSet opDefs
@@ -45,18 +45,14 @@ allUsedOps defs seen ops
   where
     used = calledOps ops S.\\ seen
 
-warnUnusedOps :: Program Op -> Comp (Program Op)
+warnUnusedOps :: Monad m => Program Op -> CompT m (Program Op)
 warnUnusedOps p@Program{..} =
-  tell warning $> p { opDefs = usedDefs }
+  unless (M.null unusedDefs) warn $> p { opDefs = usedDefs }
   where
-    warning =
-      [ "Warning: Unused operators: " <> enumerate (M.keys unusedDefs)
-      | not $ M.null unusedDefs
-      ]
-
+    warn = tell ["Warning: Unused operators: " <> enumerate (M.keys unusedDefs)]
     unusedDefs = opDefs M.\\ usedDefs
     usedDefs = M.restrictKeys opDefs usedOps
     usedOps = allUsedOps opDefs S.empty topLevel
 
-validate :: Program Op -> Comp (Program Op)
+validate :: Monad m => Program Op -> CompT m (Program Op)
 validate p = errUndefinedCalls p *> warnUnusedOps p

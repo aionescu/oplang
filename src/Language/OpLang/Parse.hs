@@ -14,9 +14,9 @@ import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char(space1)
 import Text.Megaparsec.Char.Lexer qualified as L
 
-import Opts
-import Comp
+import Language.OpLang.CompT
 import Language.OpLang.IR
+import Opts
 
 type Parser = Parsec Void Text
 
@@ -78,7 +78,7 @@ program = Program <$> defs <*> (many op <?> "toplevel")
 programFull :: Parser (Program Op)
 programFull = ws *> program <* eof
 
-parse :: Text -> Comp (Program Op)
+parse :: Monad m => Text -> CompT m (Program Op)
 parse code = do
   file <- asks optsPath
   case runParser programFull file code of

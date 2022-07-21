@@ -1,20 +1,20 @@
 module Language.OpLang.Codegen(compile) where
 
 import Control.Monad(unless)
-import Control.Monad.IO.Class(liftIO)
 import Control.Monad.Reader(ask)
+import Control.Monad.Trans(lift)
 import Data.Char(ord)
 import Data.Map.Strict qualified as M
 import Data.Text(Text)
+import Data.Text.Builder.Linear(Builder, fromDec, runBuilder)
 import Data.Text.IO qualified as T
 import System.Directory(removeFile)
 import System.FilePath(dropExtension)
 import System.Process(system)
-import Data.Text.Builder.Linear(Builder, fromDec, runBuilder)
 
-import Opts
-import Comp
+import Language.OpLang.CompT
 import Language.OpLang.IR
+import Opts
 
 type CCode = Builder
 
@@ -77,13 +77,13 @@ codegen stackSize tapeSize Program{..} =
 cFile :: FilePath -> FilePath
 cFile file = dropExtension file <> ".c"
 
-compile :: Program Instr -> Comp ()
+compile :: Program Instr -> CompT IO ()
 compile p = do
   Opts{..} <- ask
   let cPath = cFile optsPath
   let code = codegen optsStackSize optsTapeSize p
 
-  liftIO do
+  lift do
     T.writeFile cPath code
     system $ show optsCCPath <> " -o " <> show optsOutPath <> " " <> show cPath
 
