@@ -9,6 +9,7 @@ type Id = Char
 type Val = Int8
 type Offset = Int
 
+-- "Surface-level" AST, produced by the parser
 data Op
   = Incr
   | Decr
@@ -21,6 +22,7 @@ data Op
   | Loop' [Op]
   | Call' Id
 
+-- Internal AST, used for optimizations and codegen
 data Instr
   = Add Val Offset
   | Set Val Offset

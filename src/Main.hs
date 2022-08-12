@@ -10,12 +10,12 @@ import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Exit(exitFailure)
 
-import Language.OpLang.Codegen
-import Language.OpLang.CompT
-import Language.OpLang.Optimize
-import Language.OpLang.Parse
-import Language.OpLang.Validate
-import Opts
+import Language.OpLang.Codegen(compile)
+import Language.OpLang.CompT(CompT(..))
+import Language.OpLang.Optimize(optimize)
+import Language.OpLang.Parse(parse)
+import Language.OpLang.Validate(validate)
+import Opts(Opts(..), getOpts)
 
 getCode :: CompT IO Text
 getCode = lift . T.readFile =<< asks optsPath
@@ -28,4 +28,4 @@ main :: IO ()
 main =
   getOpts
   >>= runCompT pipeline
-  >>= bitraverse_ (traverse_ T.putStrLn) (maybe exitFailure pure)
+  >>= bitraverse_ (maybe exitFailure pure) (traverse_ T.putStrLn)

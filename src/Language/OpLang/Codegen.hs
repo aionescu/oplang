@@ -4,30 +4,33 @@ import Control.Monad(unless)
 import Control.Monad.Reader(ask)
 import Control.Monad.Trans(lift)
 import Data.Char(ord)
+import Data.Foldable(foldMap')
 import Data.Map.Strict qualified as M
+import Data.Maybe(fromMaybe)
 import Data.Text(Text)
 import Data.Text.Builder.Linear(Builder, fromDec, runBuilder)
 import Data.Text.IO qualified as T
-import System.Directory(removeFile)
-import System.FilePath(dropExtension)
+import System.Directory(createDirectoryIfMissing, removeFile)
+import System.FilePath(dropExtension, takeDirectory)
+import System.Info(os)
 import System.Process(system)
 
-import Language.OpLang.CompT
+import Language.OpLang.CompT(CompT)
 import Language.OpLang.IR
-import Opts
+import Opts(Opts(..))
 
 type CCode = Builder
 
 cName :: Id -> CCode
 cName n = "o" <> fromDec (ord n)
 
-programPrologue :: Word -> Word -> CCode
-programPrologue stackSize tapeSize =
+programHeader :: Word -> Word -> CCode
+programHeader stackSize tapeSize =
   "#include<stdio.h>\n#define T " <> fromDec tapeSize
   <> "\nchar q[" <> fromDec stackSize <> "],*s=q;"
 
-compileProto :: Id -> CCode
-compileProto name = "void " <> cName name <> "();"
+forwardDecl :: Id -> CCode
+forwardDecl name = "void " <> cName name <> "();"
 
 compileDef :: Id -> [Instr] -> CCode
 compileDef name body = "void " <> cName name <> "(){char u[T]={0},*t=u;" <> compileOps body <> "}"
@@ -36,7 +39,7 @@ compileMain :: [Instr] -> CCode
 compileMain body = "int main(){char u[T]={0},*t=u;" <> compileOps body <> "return 0;}"
 
 compileOps :: [Instr] -> CCode
-compileOps = foldMap compileOp
+compileOps = foldMap' compileOp
 
 tape :: Offset -> CCode
 tape 0 = "*t"
@@ -69,23 +72,27 @@ compileOp = \case
 codegen :: Word -> Word -> Program Instr -> Text
 codegen stackSize tapeSize Program{..} =
   runBuilder
-  $ programPrologue stackSize tapeSize
-  <> foldMap compileProto (M.keys opDefs)
+  $ programHeader stackSize tapeSize
+  <> foldMap' forwardDecl (M.keys opDefs)
   <> M.foldMapWithKey compileDef opDefs
   <> compileMain topLevel
 
-cFile :: FilePath -> FilePath
-cFile file = dropExtension file <> ".c"
+exePath :: FilePath -> FilePath
+exePath path = dropExtension path <> ext os
+  where
+    ext "mingw32" = ".exe"
+    ext _ = ""
 
 compile :: Program Instr -> CompT IO ()
 compile p = do
   Opts{..} <- ask
-  let cPath = cFile optsPath
-  let code = codegen optsStackSize optsTapeSize p
+  let cFile = dropExtension optsPath <> ".c"
+  let cCode = codegen optsStackSize optsTapeSize p
+  let outFile = fromMaybe (exePath optsPath) optsOutPath
 
   lift do
-    T.writeFile cPath code
-    system $ show optsCCPath <> " -o " <> show optsOutPath <> " " <> show cPath
+    T.writeFile cFile cCode
+    createDirectoryIfMissing True $ takeDirectory outFile
 
-    unless optsKeepCFile $
-      removeFile cPath
+    system $ show optsCCPath <> " -o " <> show outFile <> " " <> show cFile
+    unless optsKeepCFile $ removeFile cFile

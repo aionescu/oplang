@@ -3,8 +3,6 @@
 module Opts(Opts(..), getOpts) where
 
 import Options.Applicative
-import System.FilePath(dropExtension)
-import System.Info(os)
 
 data Opts =
   Opts
@@ -12,7 +10,7 @@ data Opts =
   , optsTapeSize :: Word
   , optsKeepCFile :: Bool
   , optsCCPath :: FilePath
-  , optsOutPath :: FilePath
+  , optsOutPath :: Maybe FilePath
   , optsPath :: FilePath
   }
 
@@ -30,24 +28,12 @@ optsParser =
     programOptions :: Parser Opts
     programOptions =
       Opts
-      <$> option auto (long "stack-size" <> value 4096 <> metavar "SIZE" <> help "Size of the stack.")
-      <*> option auto (long "tape-size" <> value 65536 <> metavar "SIZE" <> help "Size of the memory tape.")
-      <*> switch (long "keep-c-file" <> help "Keep the resulting C file.")
-      <*> strOption (long "cc-path" <> value "cc" <> metavar "PATH" <> help "Path of the C compiler to use.")
-      <*> strOption (short 'o' <> long "out-path" <> value "" <> metavar "PATH" <> help "Path of the resulting executable.")
+      <$> option auto (short 'S' <> long "stack-size" <> value 4096 <> metavar "SIZE" <> help "Size of the stack.")
+      <*> option auto (short 'T' <> long "tape-size" <> value 65536 <> metavar "SIZE" <> help "Size of the memory tape.")
+      <*> switch (short 'K' <> long "keep-c-file" <> help "Keep the resulting C file.")
+      <*> strOption (short 'C' <> long "cc-path" <> value "cc" <> metavar "PATH" <> help "Path of the C compiler to use.")
+      <*> optional (strOption (short 'o' <> long "out-path" <> metavar "PATH" <> help "Path of the resulting executable."))
       <*> strArgument (metavar "PATH" <> help "The source file to compile.")
 
-withExt :: FilePath -> FilePath
-withExt path = dropExtension path <> ext os
-  where
-    ext "mingw32" = ".exe"
-    ext _ = ".out"
-
-setOutPath :: Opts -> Opts
-setOutPath opts =
-  case optsOutPath opts of
-    "" -> opts { optsOutPath = withExt $ optsPath opts }
-    _ -> opts
-
 getOpts :: IO Opts
-getOpts = setOutPath <$> execParser optsParser
+getOpts = execParser optsParser

@@ -12,8 +12,8 @@ import Data.Set qualified as S
 import Data.Text(Text)
 import Data.Text qualified as T
 
-import Language.OpLang.CompT
-import Language.OpLang.IR
+import Language.OpLang.CompT(CompT)
+import Language.OpLang.IR(Program(..), Op(..), Id)
 
 calledOps :: [Op] -> Set Id
 calledOps = foldMap \case

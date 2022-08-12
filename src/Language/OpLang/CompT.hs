@@ -1,21 +1,21 @@
-module Language.OpLang.CompT(CompT, runCompT) where
+module Language.OpLang.CompT(CompT(..)) where
 
 import Control.Applicative(Alternative)
 import Control.Monad(MonadPlus)
 import Control.Monad.IO.Class(MonadIO)
 import Control.Monad.Reader(MonadReader, ReaderT(..))
 import Control.Monad.Trans(MonadTrans(..))
-import Control.Monad.Trans.Maybe(MaybeT (runMaybeT))
-import Control.Monad.Writer.Strict(MonadWriter, WriterT, runWriterT)
+import Control.Monad.Trans.Maybe(MaybeT(..))
+import Control.Monad.Writer.Strict(MonadWriter, WriterT(..))
+import Data.Coerce(coerce)
 import Data.Text(Text)
-import Data.Tuple(swap)
 
-import Opts
+import Opts(Opts)
 
 -- The "Compilation" Monad Transformer
 newtype CompT m a =
-  CompT { _runCompT :: ReaderT Opts (MaybeT (WriterT [Text] m)) a }
-  deriving newtype
+  CompT { runCompT :: Opts -> m (Maybe a, [Text]) }
+  deriving
     ( Functor
     , Applicative
     , Alternative
@@ -25,9 +25,7 @@ newtype CompT m a =
     , MonadWriter [Text]
     , MonadIO
     )
+    via ReaderT Opts (MaybeT (WriterT [Text] m))
 
 instance MonadTrans CompT where
-  lift = CompT . lift . lift . lift
-
-runCompT :: Monad m => CompT m a -> Opts -> m ([Text], Maybe a)
-runCompT (CompT m) opts = swap <$> runWriterT (runMaybeT $ runReaderT m opts)
+  lift = coerce . lift @(ReaderT Opts) . lift @MaybeT . lift @(WriterT [Text])
