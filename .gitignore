@@ -1,5 +1,4 @@
 dist-newstyle
-.vscode
 
 *.c
 *.exe
