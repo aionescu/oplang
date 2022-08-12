@@ -2,7 +2,7 @@ cabal-version: 3.0
 
 name: oplang
 version: 0.3.0.0
-synopsis: Compiler for OpLang, an esoteric programming language
+synopsis: Stack-based esoteric programming language
 description: Please see the README on GitHub at <https://github.com/aionescu/oplang#readme>
 homepage: https://github.com/aionescu/oplang#readme
 bug-reports: https://github.com/aionescu/oplang/issues
@@ -11,7 +11,7 @@ license-file: LICENSE.txt
 author: Alex Ionescu
 maintainer: alxi.2001@gmail.com
 copyright: Copyright (C) 2019-2022 Alex Ionescu
-category: Compiler
+category: Compilers/Interpreters, Language
 build-type: Simple
 
 extra-source-files:
