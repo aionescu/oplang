@@ -18,7 +18,7 @@ To compile an OpLang file with default options, use:
 
 ```sh
 oplang code.op
-./code.out
+./code
 ```
 
 For a list of available command-line options, use `oplang --help`.
@@ -27,7 +27,7 @@ For a list of available command-line options, use `oplang --help`.
 
 Prerequisites:
 
-* `GHC` >=8.10
+* `GHC` >=9.0
 * `cabal` >=3.0
 
 (Both can be installed via [ghcup](https://www.haskell.org/ghcup/))

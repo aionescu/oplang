@@ -1,3 +1,7 @@
+## v0.3.0.1 \[2022-08-12\]
+
+* Update [`base`](https://hackage.haskell.org/package/base) version bound to require GHC 9.0 (`base` 4.15) or newer
+
 ## v0.3.0.0 \[2022-08-12\]
 
 * Upgrade to [`text`](https://hackage.haskell.org/package/text) v2 and use [`text-builder-linear`](https://hackage.haskell.org/package/text-builder-linear), improving compilation performance
