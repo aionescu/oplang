@@ -1,6 +1,6 @@
-module Language.OpLang.Optimize(optimize) where
+module Language.OpLang.Optimizer(optimize) where
 
-import Language.OpLang.IR
+import Language.OpLang.Syntax
 
 syncTally :: Bool -> Val -> Offset -> [Instr] -> [Instr]
 syncTally False 0 _ acc = acc

@@ -78,12 +78,12 @@ executable oplang
   main-is: Main.hs
 
   other-modules:
+    Control.Monad.Comp
     Language.OpLang.Codegen
-    Language.OpLang.CompT
-    Language.OpLang.IR
-    Language.OpLang.Optimize
-    Language.OpLang.Parse
-    Language.OpLang.Validate
+    Language.OpLang.Optimizer
+    Language.OpLang.Parser
+    Language.OpLang.Syntax
+    Language.OpLang.Validation
     Opts
     Paths_oplang
 

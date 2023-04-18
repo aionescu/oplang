@@ -1,6 +1,6 @@
 {-# LANGUAGE StrictData #-}
 
-module Language.OpLang.IR where
+module Language.OpLang.Syntax where
 
 import Data.Int(Int8)
 import Data.Map.Strict(Map)
@@ -9,7 +9,7 @@ type Id = Char
 type Val = Int8
 type Offset = Int
 
--- "Surface-level" AST, produced by the parser
+-- Surface-level AST, produced by the parser
 data Op
   = Incr
   | Decr

@@ -1,4 +1,4 @@
-module Language.OpLang.Parse(parse) where
+module Language.OpLang.Parser(parse) where
 
 import Control.Monad.Reader(asks)
 import Control.Monad.Writer.Strict(tell)
@@ -14,8 +14,8 @@ import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char(space1)
 import Text.Megaparsec.Char.Lexer qualified as L
 
-import Language.OpLang.CompT(CompT)
-import Language.OpLang.IR(Program(..), Op(..), Id)
+import Control.Monad.Comp(CompT)
+import Language.OpLang.Syntax(Program(..), Op(..), Id)
 import Opts(Opts(..))
 
 type Parser = Parsec Void Text

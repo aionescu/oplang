@@ -1,4 +1,4 @@
-module Language.OpLang.CompT(CompT(..)) where
+module Control.Monad.Comp(CompT(..)) where
 
 import Control.Applicative(Alternative)
 import Control.Monad(MonadPlus)

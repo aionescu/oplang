@@ -1,4 +1,4 @@
-module Language.OpLang.Validate(validate) where
+module Language.OpLang.Validation(validate) where
 
 import Control.Monad(guard, unless)
 import Control.Monad.Writer.Strict(tell)
@@ -12,8 +12,8 @@ import Data.Set qualified as S
 import Data.Text(Text)
 import Data.Text qualified as T
 
-import Language.OpLang.CompT(CompT)
-import Language.OpLang.IR(Program(..), Op(..), Id)
+import Control.Monad.Comp(CompT)
+import Language.OpLang.Syntax(Program(..), Op(..), Id)
 
 calledOps :: [Op] -> Set Id
 calledOps = foldMap \case

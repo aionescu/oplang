@@ -15,8 +15,8 @@ import System.FilePath(dropExtension, takeDirectory)
 import System.Info(os)
 import System.Process(system)
 
-import Language.OpLang.CompT(CompT)
-import Language.OpLang.IR
+import Control.Monad.Comp(CompT)
+import Language.OpLang.Syntax
 import Opts(Opts(..))
 
 type CCode = Builder
