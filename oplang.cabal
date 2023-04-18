@@ -1,4 +1,4 @@
-cabal-version: 3.0
+cabal-version: 3.8
 
 name: oplang
 version: 0.3.0.1
@@ -9,8 +9,8 @@ bug-reports: https://github.com/aionescu/oplang/issues
 license: GPL-3.0-only
 license-file: LICENSE.txt
 author: Alex Ionescu
-maintainer: alxi.2001@gmail.com
-copyright: Copyright (C) 2019-2022 Alex Ionescu
+maintainer: aaionescu@pm.me
+copyright: Copyright (C) 2019-2023 Alex Ionescu
 category: Compilers/Interpreters, Language
 build-type: Simple
 
@@ -22,7 +22,59 @@ source-repository head
   type: git
   location: https://github.com/aionescu/oplang
 
+common ghc-flags
+  default-language: GHC2021
+  default-extensions:
+    ApplicativeDo
+    BlockArguments
+    DataKinds
+    DefaultSignatures
+    DeriveAnyClass
+    DerivingVia
+    DuplicateRecordFields
+    FunctionalDependencies
+    GADTs
+    ImplicitParams
+    ImpredicativeTypes
+    LambdaCase
+    LexicalNegation
+    MagicHash
+    MultiWayIf
+    NegativeLiterals
+    NoMonomorphismRestriction
+    NoStarIsType
+    OverloadedLabels
+    OverloadedStrings
+    PartialTypeSignatures
+    PatternSynonyms
+    QuantifiedConstraints
+    RecordWildCards
+    RecursiveDo
+    TypeFamilyDependencies
+    UnboxedTuples
+    UndecidableInstances
+    UnliftedDatatypes
+    UnliftedNewtypes
+    ViewPatterns
+
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wmissing-deriving-strategies
+    -Wno-name-shadowing
+    -Wpartial-fields
+    -Wprepositive-qualified-module
+    -Wredundant-constraints
+    -Wunused-packages
+
 executable oplang
+  import: ghc-flags
+
+  hs-source-dirs: src
   main-is: Main.hs
 
   other-modules:
@@ -34,86 +86,15 @@ executable oplang
     Language.OpLang.Validate
     Opts
 
-  hs-source-dirs: src
-
   build-depends:
-    base >=4.15 && <5
-    , containers ^>= 0.6.5
-    , directory ^>= 1.3.7
-    , filepath ^>= 1.4.2
-    , megaparsec ^>= 9.2
+    base >=4.16 && <5
+    , containers ^>= 0.6.7
+    , directory ^>= 1.3.8
+    , filepath ^>= 1.4.100
+    , megaparsec ^>= 9.3
     , mtl ^>= 2.3
     , optparse-applicative ^>= 0.17
-    , process ^>= 1.6.14
+    , process ^>= 1.6.17
     , text ^>= 2
     , text-builder-linear ^>= 0.1
     , transformers ^>= 0.6
-
-  ghc-options:
-    -threaded
-    -rtsopts
-    -with-rtsopts=-N
-    -Wall
-    -Wcompat
-    -Wincomplete-uni-patterns
-    -Wprepositive-qualified-module
-    -Wmissing-deriving-strategies
-    -Wunused-packages
-    -Widentities
-    -Wredundant-constraints
-    -Wunticked-promoted-constructors
-    -Wpartial-fields
-    -Wmissing-exported-signatures
-    -Wno-name-shadowing
-
-  default-extensions:
-    ApplicativeDo
-    BangPatterns
-    BlockArguments
-    ConstraintKinds
-    DataKinds
-    DefaultSignatures
-    DeriveAnyClass
-    DeriveFoldable
-    DeriveFunctor
-    DeriveGeneric
-    DeriveLift
-    DeriveTraversable
-    DerivingStrategies
-    DerivingVia
-    EmptyCase
-    ExistentialQuantification
-    FlexibleContexts
-    FlexibleInstances
-    FunctionalDependencies
-    GADTs
-    GeneralizedNewtypeDeriving
-    ImportQualifiedPost
-    InstanceSigs
-    KindSignatures
-    LambdaCase
-    MagicHash
-    MultiParamTypeClasses
-    MultiWayIf
-    NamedFieldPuns
-    NegativeLiterals
-    NoMonomorphismRestriction
-    NoStarIsType
-    OverloadedStrings
-    PartialTypeSignatures
-    PatternSynonyms
-    RankNTypes
-    RecordWildCards
-    RecursiveDo
-    ScopedTypeVariables
-    StandaloneDeriving
-    TupleSections
-    TypeApplications
-    TypeFamilies
-    TypeFamilyDependencies
-    TypeOperators
-    UnboxedTuples
-    UndecidableInstances
-    ViewPatterns
-
-  default-language: Haskell2010

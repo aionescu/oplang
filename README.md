@@ -27,8 +27,8 @@ For a list of available command-line options, use `oplang --help`.
 
 Prerequisites:
 
-* `GHC` >=9.0
-* `cabal` >=3.0
+* `GHC` >=9.2
+* `cabal` >=3.8
 
 (Both can be installed via [ghcup](https://www.haskell.org/ghcup/))
 
@@ -80,7 +80,7 @@ a { ; +++ : }
 ,: a ;.
 ```
 
-For more example programs, see the [examples](examples/) folder.
+For more example programs, see the [examples](examples) folder.
 
 ## License
 
