@@ -85,6 +85,10 @@ executable oplang
     Language.OpLang.Parse
     Language.OpLang.Validate
     Opts
+    Paths_oplang
+
+  autogen-modules:
+    Paths_oplang
 
   build-depends:
     base >=4.16 && <5

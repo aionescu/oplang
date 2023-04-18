@@ -2,7 +2,10 @@
 
 module Opts(Opts(..), getOpts) where
 
+import Data.Version(showVersion)
 import Options.Applicative
+
+import Paths_oplang(version)
 
 data Opts =
   Opts
@@ -17,14 +20,15 @@ data Opts =
 optsParser :: ParserInfo Opts
 optsParser =
   info
-    (infoOption "oplang v0.3.0.1" (short 'v' <> long "version" <> help "Shows version information.")
+    (infoOption ("oplang v" <> ver) (short 'v' <> long "version" <> help "Shows version information.")
       <*> helper
       <*> programOptions)
     (fullDesc
       <> progDesc "Compiles an OpLang source file to a native executable."
       <> header "oplang - The OpLang Compiler")
-
   where
+    ver = showVersion version
+
     programOptions :: Parser Opts
     programOptions =
       Opts
