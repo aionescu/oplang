@@ -81,7 +81,7 @@ exePath :: FilePath -> FilePath
 exePath path = dropExtension path <> ext os
   where
     ext "mingw32" = ".exe"
-    ext _ = ""
+    ext _ = ".out"
 
 compile :: Program Instr -> CompT IO ()
 compile p = do
