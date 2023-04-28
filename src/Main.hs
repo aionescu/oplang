@@ -8,6 +8,7 @@ import Data.Bifoldable(bitraverse_)
 import Data.Foldable(traverse_)
 import Data.Text(Text)
 import Data.Text.IO qualified as T
+import Data.Tuple(swap)
 import System.Exit(exitFailure)
 
 import Control.Monad.Comp(CompT, runCompT)
@@ -28,4 +29,4 @@ main :: IO ()
 main =
   getOpts
   >>= runCompT pipeline
-  >>= bitraverse_ (maybe exitFailure pure) (traverse_ T.putStrLn)
+  >>= bitraverse_ (traverse_ T.putStrLn) (maybe exitFailure pure) . swap
