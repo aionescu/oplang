@@ -29,7 +29,7 @@ lexeme = L.lexeme ws
 symbol :: Text -> Parser Text
 symbol = L.symbol ws
 
-reserved :: [Char]
+reserved :: Text
 reserved = "+-<>,.;:[]{}"
 
 intrinsic :: Parser Op
@@ -43,8 +43,7 @@ intrinsic =
   , symbol "." $> Write'
   , symbol ";" $> Pop'
   , symbol ":" $> Push'
-  ]
-  <?> "intrinsic operator"
+  ] <?> "intrinsic operator"
 
 block :: Text -> Text -> Parser [Op]
 block b e = between (symbol b) (symbol e) $ many op
@@ -53,13 +52,18 @@ loop :: Parser Op
 loop = Loop' <$> block "[" "]" <?> "loop"
 
 custom :: Parser Char
-custom = lexeme (satisfy (`notElem` reserved) <?> "custom operator")
+custom = lexeme (satisfy $ not . (`T.elem` reserved)) <?> "custom operator"
 
 op :: Parser Op
-op = choice [loop, intrinsic, Call' <$> custom] <?> "operator"
+op =
+  choice
+  [ loop
+  , intrinsic
+  , Call' <$> custom
+  ] <?> "operator"
 
 def :: Parser (Id, [Op])
-def = (,) <$> lexeme custom <*> block "{" "}" <?> "definition"
+def = (,) <$> custom <*> block "{" "}" <?> "definition"
 
 defs :: Parser (Map Id [Op])
 defs = many (try def) >>= toMap
@@ -75,12 +79,9 @@ defs = many (try def) >>= toMap
 program :: Parser (Program Op)
 program = Program <$> defs <*> (many op <?> "toplevel")
 
-programFull :: Parser (Program Op)
-programFull = ws *> program <* eof
-
 parse :: Monad m => Text -> CompT m (Program Op)
 parse code = do
   path <- asks (.path)
-  case runParser programFull path code of
-    Left e -> tell [T.pack $ errorBundlePretty e] *> empty
+  case runParser (ws *> program <* eof) path code of
+    Left e -> tell ["Parse error at " <> T.pack (errorBundlePretty e)] *> empty
     Right p -> pure p
