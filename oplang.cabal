@@ -41,9 +41,11 @@ common ghc-flags
     MagicHash
     MultiWayIf
     NegativeLiterals
+    NoFieldSelectors
     NoMonomorphismRestriction
     NoStarIsType
     OverloadedLabels
+    OverloadedRecordDot
     OverloadedStrings
     PartialTypeSignatures
     PatternSynonyms

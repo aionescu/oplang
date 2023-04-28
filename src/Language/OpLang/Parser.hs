@@ -80,7 +80,7 @@ programFull = ws *> program <* eof
 
 parse :: Monad m => Text -> CompT m (Program Op)
 parse code = do
-  file <- asks optsPath
-  case runParser programFull file code of
+  path <- asks (.path)
+  case runParser programFull path code of
     Left e -> tell [T.pack $ errorBundlePretty e] *> empty
     Right p -> pure p

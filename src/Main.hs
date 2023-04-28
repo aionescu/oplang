@@ -10,7 +10,7 @@ import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Exit(exitFailure)
 
-import Control.Monad.Comp(CompT(..))
+import Control.Monad.Comp(CompT, runCompT)
 import Language.OpLang.Codegen(compile)
 import Language.OpLang.Optimizer(optimize)
 import Language.OpLang.Parser(parse)
@@ -18,7 +18,7 @@ import Language.OpLang.Validation(validate)
 import Opts(Opts(..), getOpts)
 
 getCode :: CompT IO Text
-getCode = lift . T.readFile =<< asks optsPath
+getCode = lift . T.readFile =<< asks (.path)
 
 pipeline :: CompT IO ()
 pipeline =

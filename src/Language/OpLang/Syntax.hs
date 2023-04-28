@@ -22,7 +22,7 @@ data Op
   | Loop' [Op]
   | Call' Id
 
--- Internal AST, used for optimizations and codegen
+-- Internal IR, used for optimizations and codegen
 data Instr
   = Add Val Offset
   | Set Val Offset

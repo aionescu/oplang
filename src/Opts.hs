@@ -9,12 +9,12 @@ import Paths_oplang(version)
 
 data Opts =
   Opts
-  { optsStackSize :: Word
-  , optsTapeSize :: Word
-  , optsKeepCFile :: Bool
-  , optsCCPath :: FilePath
-  , optsOutPath :: Maybe FilePath
-  , optsPath :: FilePath
+  { stackSize :: Word
+  , tapeSize :: Word
+  , keepCFile :: Bool
+  , ccPath :: FilePath
+  , outPath :: Maybe FilePath
+  , path :: FilePath
   }
 
 optsParser :: ParserInfo Opts

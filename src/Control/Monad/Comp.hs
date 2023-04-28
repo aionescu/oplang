@@ -1,4 +1,4 @@
-module Control.Monad.Comp(CompT(..)) where
+module Control.Monad.Comp(CompT(..), runCompT) where
 
 import Control.Applicative(Alternative)
 import Control.Monad(MonadPlus)
@@ -7,15 +7,14 @@ import Control.Monad.Reader(MonadReader, ReaderT(..))
 import Control.Monad.Trans(MonadTrans(..))
 import Control.Monad.Trans.Maybe(MaybeT(..))
 import Control.Monad.Writer.Strict(MonadWriter, WriterT(..))
-import Data.Coerce(coerce)
 import Data.Text(Text)
 
 import Opts(Opts)
 
 -- The "Compilation" Monad Transformer
 newtype CompT m a =
-  CompT { runCompT :: Opts -> m (Maybe a, [Text]) }
-  deriving
+  CompT (ReaderT Opts (MaybeT (WriterT [Text] m)) a)
+  deriving newtype
     ( Functor
     , Applicative
     , Alternative
@@ -25,7 +24,10 @@ newtype CompT m a =
     , MonadWriter [Text]
     , MonadIO
     )
-    via ReaderT Opts (MaybeT (WriterT [Text] m))
 
 instance MonadTrans CompT where
-  lift = coerce . lift @(ReaderT Opts) . lift @MaybeT . lift @(WriterT [Text])
+  lift :: Monad m => m a -> CompT m a
+  lift = CompT . lift . lift . lift
+
+runCompT :: CompT m a -> Opts -> m (Maybe a, [Text])
+runCompT (CompT m) = runWriterT . runMaybeT . runReaderT m

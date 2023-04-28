@@ -86,13 +86,13 @@ exePath path = dropExtension path <> ext os
 compile :: Program Instr -> CompT IO ()
 compile p = do
   Opts{..} <- ask
-  let cFile = dropExtension optsPath <> ".c"
-  let cCode = codegen optsStackSize optsTapeSize p
-  let outFile = fromMaybe (exePath optsPath) optsOutPath
+  let cFile = dropExtension path <> ".c"
+  let cCode = codegen stackSize tapeSize p
+  let outFile = fromMaybe (exePath path) outPath
 
   lift do
     T.writeFile cFile cCode
     createDirectoryIfMissing True $ takeDirectory outFile
 
-    system $ show optsCCPath <> " -o " <> show outFile <> " " <> show cFile
-    unless optsKeepCFile $ removeFile cFile
+    system $ show ccPath <> " -o " <> show outFile <> " " <> show cFile
+    unless keepCFile $ removeFile cFile
