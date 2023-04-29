@@ -1,6 +1,13 @@
 module Language.OpLang.Optimizer(optimize) where
 
+import Control.Monad(when)
+import Control.Monad.Reader(ask)
+import Control.Monad.Trans(lift)
+import Data.Functor(($>))
+
+import Control.Monad.Comp(CompT)
 import Language.OpLang.Syntax
+import Opts(Opts(..))
 
 syncTally :: Bool -> Val -> Offset -> [Instr] -> [Instr]
 syncTally False 0 _ acc = acc
@@ -40,20 +47,21 @@ optimizeOps = removeSet0 . go False True 0 0 []
         Loop' _ | (True, 0) <- (known, tally) -> go loop known tally offset acc ops
         Loop' l ->
           case go True False 0 0 [] l of
-            [Add 1 0] -> go loop True 0 offset acc ops
-            [Add -1 0] -> go loop True 0 offset acc ops
+            [Add n 0] | abs n == 1 -> go loop True 0 offset acc ops
+            [Add n o] | abs n == 1 -> go loop known tally offset (Set 0 (offset + o) : acc) ops
 
-            [Add 1 o] -> go loop known tally offset (Set 0 (offset + o) : acc) ops
-            [Add -1 o] -> go loop known tally offset (Set 0 (offset + o) : acc) ops
-
-            [Add n o, Add -1 0] -> go loop False 0 offset (AddCell n (o + offset) offset : syncTally known tally offset acc) ops
-            [Add -1 0, Add n o] -> go loop False 0 offset (AddCell n (o + offset) offset : syncTally known tally offset acc) ops
+            [Add n o, Add m 0] | abs m == 1 -> go loop False 0 offset (AddCell n (o + offset) offset : syncTally known tally offset acc) ops
+            [Add m 0, Add n o] | abs m == 1 -> go loop False 0 offset (AddCell n (o + offset) offset : syncTally known tally offset acc) ops
 
             l' -> go loop False 0 0 (Loop l' : syncAll known tally offset acc) ops
 
-optimize :: Program Op -> Program Instr
-optimize Program{..} =
-  Program
-  { opDefs = optimizeOps <$> opDefs
-  , topLevel = optimizeOps topLevel
-  }
+optimize :: Program Op -> CompT IO (Program Instr)
+optimize Program{..} = do
+  Opts{..} <- ask
+  when dumpIR (lift $ putStrLn $ "IR:\n" <> show p <> "\n") $> p
+  where
+    p =
+      Program
+      { opDefs = optimizeOps <$> opDefs
+      , topLevel = optimizeOps topLevel
+      }

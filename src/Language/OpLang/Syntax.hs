@@ -1,5 +1,3 @@
-{-# LANGUAGE StrictData #-}
-
 module Language.OpLang.Syntax where
 
 import Data.Int(Int8)
@@ -21,6 +19,7 @@ data Op
   | Push'
   | Loop' [Op]
   | Call' Id
+  deriving stock Show
 
 -- Internal IR, used for optimizations and codegen
 data Instr
@@ -34,9 +33,11 @@ data Instr
   | Loop [Instr]
   | Call Id
   | AddCell Val Offset Offset
+  deriving stock Show
 
 data Program op
   = Program
   { opDefs :: Map Id [op]
   , topLevel :: [op]
   }
+  deriving stock Show

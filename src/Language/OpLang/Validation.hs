@@ -1,7 +1,8 @@
 module Language.OpLang.Validation(validate) where
 
 import Control.Monad(guard, unless)
-import Control.Monad.Writer.Strict(tell)
+import Control.Monad.Reader(ask)
+import Control.Monad.Writer(tell)
 import Data.Bifunctor(bimap)
 import Data.Functor(($>))
 import Data.List(intercalate)
@@ -13,7 +14,8 @@ import Data.Text(Text)
 import Data.Text qualified as T
 
 import Control.Monad.Comp(CompT)
-import Language.OpLang.Syntax(Program(..), Op(..), Id)
+import Language.OpLang.Syntax
+import Opts(Opts(..))
 
 calledOps :: [Op] -> Set Id
 calledOps = foldMap \case
@@ -24,8 +26,8 @@ calledOps = foldMap \case
 enumerate :: Show a => [a] -> Text
 enumerate l = T.pack $ intercalate ", " $ show <$> l
 
-errUndefinedCalls :: Monad m => Program Op -> CompT m ()
-errUndefinedCalls Program{..} = tell errors *> guard (null errors)
+checkUndefinedCalls :: Monad m => Program Op -> CompT m ()
+checkUndefinedCalls Program{..} = tell errors *> guard (null errors)
   where
     defined = M.keysSet opDefs
 
@@ -45,9 +47,10 @@ allUsedOps defs seen ops
   where
     used = calledOps ops S.\\ seen
 
-warnUnusedOps :: Monad m => Program Op -> CompT m (Program Op)
-warnUnusedOps p@Program{..} =
-  unless (M.null unusedDefs) warn $> p { opDefs = usedDefs }
+removeUnusedOps :: Monad m => Program Op -> CompT m (Program Op)
+removeUnusedOps p@Program{..} = do
+  Opts{..} <- ask
+  unless (noWarn || M.null unusedDefs) warn $> p { opDefs = usedDefs }
   where
     warn = tell ["Warning: Unused operators: " <> enumerate (M.keys unusedDefs)]
     unusedDefs = opDefs M.\\ usedDefs
@@ -55,4 +58,4 @@ warnUnusedOps p@Program{..} =
     usedOps = allUsedOps opDefs S.empty topLevel
 
 validate :: Monad m => Program Op -> CompT m (Program Op)
-validate p = errUndefinedCalls p *> warnUnusedOps p
+validate p = checkUndefinedCalls p *> removeUnusedOps p

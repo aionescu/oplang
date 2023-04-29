@@ -1,6 +1,5 @@
 module Language.OpLang.Codegen(compile) where
 
-import Control.Monad(unless)
 import Control.Monad.Reader(ask)
 import Control.Monad.Trans(lift)
 import Data.Char(ord)
@@ -11,9 +10,10 @@ import Data.Text(Text)
 import Data.Text.Builder.Linear(Builder, fromDec, runBuilder)
 import Data.Text.IO qualified as T
 import System.Directory(createDirectoryIfMissing, removeFile)
+import System.Environment(lookupEnv)
 import System.FilePath(dropExtension, takeDirectory)
 import System.Info(os)
-import System.Process(system)
+import System.Process(callProcess)
 
 import Control.Monad.Comp(CompT)
 import Language.OpLang.Syntax
@@ -58,16 +58,16 @@ addCell v o o' = tape o <> plusEq v <> tape o' <> times (abs v) <> ";" <> tape o
 
 compileOp :: Instr -> CCode
 compileOp = \case
-    Add n o -> tape o <> plusEq n <> fromDec (abs n) <> ";"
-    Set n o -> tape o <> "=" <> fromDec n <> ";"
-    Pop o -> tape o <> "=*(--s);"
-    Push o -> "*(s++)=" <> tape o <> ";"
-    Read o -> "scanf(\"%c\",&" <> tape o <> ");"
-    Write o -> "printf(\"%c\"," <> tape o <> ");"
-    Move n -> "t" <> plusEq n <> fromDec (abs n) <> ";"
-    AddCell n o o' -> addCell n o o'
-    Loop ops -> "while(*t){" <> compileOps ops <> "}"
-    Call c -> cName c <> "();"
+  Add n o -> tape o <> plusEq n <> fromDec (abs n) <> ";"
+  Set n o -> tape o <> "=" <> fromDec n <> ";"
+  Pop o -> tape o <> "=*(--s);"
+  Push o -> "*(s++)=" <> tape o <> ";"
+  Read o -> "scanf(\"%c\",&" <> tape o <> ");"
+  Write o -> "printf(\"%c\"," <> tape o <> ");"
+  Move n -> "t" <> plusEq n <> fromDec (abs n) <> ";"
+  AddCell n o o' -> addCell n o o'
+  Loop ops -> "while(*t){" <> compileOps ops <> "}"
+  Call c -> cName c <> "();"
 
 codegen :: Word -> Word -> Program Instr -> Text
 codegen stackSize tapeSize Program{..} =
@@ -83,16 +83,27 @@ exePath path = dropExtension path <> ext os
     ext "mingw32" = ".exe"
     ext _ = ".out"
 
+ccPath :: IO FilePath
+ccPath = fromMaybe "cc" <$> lookupEnv "CC"
+
 compile :: Program Instr -> CompT IO ()
 compile p = do
   Opts{..} <- ask
   let cFile = dropExtension path <> ".c"
   let cCode = codegen stackSize tapeSize p
-  let outFile = fromMaybe (exePath path) outPath
 
-  lift do
-    T.writeFile cFile cCode
-    createDirectoryIfMissing True $ takeDirectory outFile
+  lift
+    if noCC then do
+      let outFile = fromMaybe cFile outPath
+      createDirectoryIfMissing True $ takeDirectory outFile
 
-    system $ show ccPath <> " -o " <> show outFile <> " " <> show cFile
-    unless keepCFile $ removeFile cFile
+      T.writeFile outFile cCode
+    else do
+      T.writeFile cFile cCode
+
+      let outFile = fromMaybe (exePath path) outPath
+      createDirectoryIfMissing True $ takeDirectory outFile
+
+      cc <- ccPath
+      callProcess cc ["-o", outFile, cFile]
+      removeFile cFile

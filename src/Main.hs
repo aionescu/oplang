@@ -1,6 +1,5 @@
 module Main(main) where
 
-import Control.Category((>>>))
 import Control.Monad((>=>))
 import Control.Monad.Reader(asks)
 import Control.Monad.Trans(lift)
@@ -23,7 +22,7 @@ getCode = lift . T.readFile =<< asks (.path)
 
 pipeline :: CompT IO ()
 pipeline =
-  getCode >>= (parse >=> validate >=> optimize >>> compile)
+  getCode >>= (parse >=> validate >=> optimize >=> compile)
 
 main :: IO ()
 main =
