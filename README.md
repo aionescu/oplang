@@ -14,11 +14,11 @@ cabal install oplang
 
 ## Usage
 
-To compile an OpLang file with default options, use:
+To compile and run an OpLang program, use:
 
 ```sh
 oplang code.op
-./code
+./code.out
 ```
 
 For a list of available command-line options, use `oplang --help`.
@@ -28,14 +28,13 @@ For a list of available command-line options, use `oplang --help`.
 Prerequisites:
 
 * `GHC` >=9.2
-* `cabal` >=3.8
+* `cabal` >=3.6
 
 (Both can be installed via [ghcup](https://www.haskell.org/ghcup/))
 
-```sh
-cabal build
-cabal run . -- <args>
-```
+To build the project, use `cabal build`.
+
+To run the project locally (without installing), use `cabal run . -- <args>`.
 
 ## Language Features
 
@@ -49,7 +48,7 @@ Each cell in the tape(s) and stack is 1 byte, and overflow/underflow is allowed.
 
 The default size of the stack is 4KB, and the default size for each memory tape is 64KB. These can be modified via the command-line.
 
-## Syntax
+### Syntax
 
 OpLang has 10 "intrinsic" operators, 8 of which are the Brainfuck operators, with the same semantics:
 
@@ -81,6 +80,12 @@ a { ; +++ : }
 ```
 
 For more example programs, see the [examples](examples) folder.
+
+## Compiler Architecture
+
+The compiler works by translating the input OpLang source into C, and then compiling that using the system's C compiler. To use a different C compiler, set the `CC` environment variable.
+
+The compiler uses an intermediate representation (which can be shown with the `--dump-ir` option) on which it performs a number of optimizations, generating C code that is much smaller and faster than a direct translation would be.
 
 ## License
 
