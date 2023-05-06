@@ -1,5 +1,10 @@
 <!-- markdownlint-disable first-line-h1   -->
 
+## v0.4.0.0 \[2023-05-06\]
+
+* Add command-line options for printing the AST and IR, ignoring warnings, and skipping C compilation
+* Require GHC 9.2 or newer
+
 ## v0.3.0.1 \[2022-08-12\]
 
 * Update [`base`](https://hackage.haskell.org/package/base) version bound to require GHC 9.0 (`base` 4.15) or newer

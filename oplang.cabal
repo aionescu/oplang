@@ -1,7 +1,7 @@
-cabal-version: 3.8
+cabal-version: 3.0
 
 name: oplang
-version: 0.3.0.1
+version: 0.4.0.0
 synopsis: Stack-based esoteric programming language
 description: Please see the README on GitHub at <https://github.com/aionescu/oplang#readme>
 homepage: https://github.com/aionescu/oplang#readme
@@ -14,8 +14,10 @@ copyright: Copyright (C) 2019-2023 Alex Ionescu
 category: Compilers/Interpreters, Language
 build-type: Simple
 
-extra-source-files:
+extra-doc-files:
   CHANGELOG.md
+
+extra-source-files:
   README.md
 
 source-repository head
