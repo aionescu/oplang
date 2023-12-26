@@ -16,50 +16,21 @@ build-type: Simple
 
 extra-doc-files:
   CHANGELOG.md
-
-extra-source-files:
   README.md
 
 source-repository head
   type: git
   location: https://github.com/aionescu/oplang
 
-common ghc-flags
+executable oplang
   default-language: GHC2021
   default-extensions:
-    ApplicativeDo
     BlockArguments
-    DataKinds
-    DefaultSignatures
-    DeriveAnyClass
-    DerivingVia
-    DuplicateRecordFields
-    FunctionalDependencies
-    GADTs
-    ImplicitParams
-    ImpredicativeTypes
+    DerivingStrategies
     LambdaCase
-    LexicalNegation
-    MagicHash
-    MultiWayIf
-    NegativeLiterals
-    NoFieldSelectors
-    NoMonomorphismRestriction
-    NoStarIsType
-    OverloadedLabels
     OverloadedRecordDot
     OverloadedStrings
-    PartialTypeSignatures
-    PatternSynonyms
-    QuantifiedConstraints
     RecordWildCards
-    RecursiveDo
-    TypeFamilyDependencies
-    UnboxedTuples
-    UndecidableInstances
-    UnliftedDatatypes
-    UnliftedNewtypes
-    ViewPatterns
 
   ghc-options:
     -threaded
@@ -74,9 +45,6 @@ common ghc-flags
     -Wprepositive-qualified-module
     -Wredundant-constraints
     -Wunused-packages
-
-executable oplang
-  import: ghc-flags
 
   hs-source-dirs: src
   main-is: Main.hs
