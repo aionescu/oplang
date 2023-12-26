@@ -1,5 +1,4 @@
 {-# LANGUAGE StrictData #-}
-
 module Opts(Opts(..), getOpts) where
 
 import Data.Version(showVersion)
@@ -35,7 +34,7 @@ optsParser =
     programOptions =
       Opts
       <$> option auto (long "stack-size" <> value 4096 <> metavar "SIZE" <> help "Size of the stack.")
-      <*> option auto (long "tape-size" <> value 65536 <> metavar "SIZE" <> help "Size of the memory tape.")
+      <*> option auto (long "tape-size" <> value 4096 <> metavar "SIZE" <> help "Size of the memory tape.")
       <*> switch (long "no-warn" <> help "Don't report warnings.")
       <*> switch (long "no-cc" <> help "Output a C file without compiling it.")
       <*> switch (long "dump-ast" <> help "Print the AST after parsing.")

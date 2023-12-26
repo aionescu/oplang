@@ -1,9 +1,6 @@
 module Language.OpLang.Parser(parse) where
 
-import Control.Monad(when)
-import Control.Monad.Reader(ask)
-import Control.Monad.Trans(lift)
-import Control.Monad.Writer(tell)
+import Control.Monad.Chronicle(MonadChronicle(..))
 import Data.Functor(($>))
 import Data.List(intercalate)
 import Data.Map.Strict(Map)
@@ -16,9 +13,7 @@ import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char(space1)
 import Text.Megaparsec.Char.Lexer qualified as L
 
-import Control.Monad.Comp(CompT)
 import Language.OpLang.Syntax
-import Opts(Opts(..))
 
 type Parser = Parsec Void Text
 
@@ -81,9 +76,8 @@ defs = many (try def) >>= toMap
 program :: Parser (Program Op)
 program = Program <$> defs <*> (many op <?> "toplevel")
 
-parse :: Text -> CompT IO (Program Op)
-parse code = do
-  Opts{..} <- ask
+parse :: MonadChronicle [Text] m => FilePath -> Text -> m (Program Op)
+parse path code =
   case runParser (ws *> program <* eof) path code of
-    Left e -> tell ["Parse error at " <> T.pack (errorBundlePretty e)] *> empty
-    Right p -> when dumpAST (lift $ putStrLn $ "AST:\n" <> show p <> "\n") $> p
+    Left e -> confess ["Parse error at " <> T.pack (errorBundlePretty e)]
+    Right p -> pure p

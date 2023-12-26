@@ -1,3 +1,4 @@
+{-# LANGUAGE StrictData #-}
 module Language.OpLang.Syntax where
 
 import Data.Int(Int8)
