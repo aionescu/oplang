@@ -30,6 +30,7 @@ executable oplang
     BlockArguments
     DerivingStrategies
     LambdaCase
+    NoFieldSelectors
     OverloadedRecordDot
     OverloadedStrings
     RecordWildCards

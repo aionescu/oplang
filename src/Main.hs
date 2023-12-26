@@ -27,36 +27,38 @@ exePath path = dropExtension path <> ext os
     ext "mingw32" = ".exe"
     ext _ = ".out"
 
+compileCCode :: Opts -> Text -> IO ()
+compileCCode opts cCode = do
+  let cFile = dropExtension opts.path <> ".c"
+
+  if opts.noCC then do
+    let outFile = fromMaybe cFile opts.outPath
+    createDirectoryIfMissing True $ takeDirectory outFile
+    T.writeFile outFile cCode
+  else do
+    T.writeFile cFile cCode
+
+    let outFile = fromMaybe (exePath opts.path) opts.outPath
+    createDirectoryIfMissing True $ takeDirectory outFile
+
+    cc <- fromMaybe "cc" <$> lookupEnv "CC"
+    callProcess cc ["-o", outFile, cFile]
+    removeFile cFile
+
 runCompiler :: Opts -> Text -> ChronicleT [Text] IO ()
 runCompiler opts code = do
   ast <- parse opts.path code
-  when (dumpAST opts) do
+  when opts.dumpAST do
     lift $ putStrLn $ "AST:\n" <> show ast <> "\n"
 
   ast' <- validate opts.noWarn ast
 
   let ir = optimize ast'
-  when (dumpIR opts) do
+  when opts.dumpIR do
     lift $ putStrLn $ "IR:\n" <> show ir <> "\n"
 
-  let
-    cCode = codegen opts.stackSize opts.tapeSize ir
-    cFile = dropExtension opts.path <> ".c"
-
-  lift
-    if opts.noCC then do
-      let outFile = fromMaybe cFile opts.outPath
-      createDirectoryIfMissing True $ takeDirectory outFile
-      T.writeFile outFile cCode
-    else do
-      T.writeFile cFile cCode
-
-      let outFile = fromMaybe (exePath opts.path) opts.outPath
-      createDirectoryIfMissing True $ takeDirectory outFile
-
-      cc <- fromMaybe "cc" <$> lookupEnv "CC"
-      callProcess cc ["-o", outFile, cFile]
-      removeFile cFile
+  let cCode = codegen opts.stackSize opts.tapeSize ir
+  lift $ compileCCode opts cCode
 
 main :: IO ()
 main = do
