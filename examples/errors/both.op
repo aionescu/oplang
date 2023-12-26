@@ -1,0 +1,7 @@
+# Should fail to compile, producing the following warnings and errors:
+# Warning: Unused operator 'f'.
+# Warning: Unused operator 'g'.
+# Error: In definition of 'f': Call to undefined operator 'a'.
+# Error: In definition of 'g': Call to undefined operator 'b'.
+f { a }
+g { b }

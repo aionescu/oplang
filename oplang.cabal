@@ -17,6 +17,8 @@ build-type: Simple
 extra-doc-files:
   CHANGELOG.md
   README.md
+  examples/**/*.bf
+  examples/**/*.op
 
 source-repository head
   type: git

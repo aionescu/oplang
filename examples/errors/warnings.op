@@ -1,0 +1,5 @@
+# Should produce the following warnings (unless compiled with --no-warn):
+# Warning: Unused operator 'f'.
+# Warning: Unused operator 'g'.
+f { }
+g { }

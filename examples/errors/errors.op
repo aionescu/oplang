@@ -1,0 +1,5 @@
+# Should fail to compile with the following errors:
+# Error: In top level: Call to undefined operator 'b'.
+# Error: In definition of 'f': Call to undefined operator 'a'.
+f { a }
+f b
