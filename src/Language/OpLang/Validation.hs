@@ -3,9 +3,11 @@ module Language.OpLang.Validation(validate) where
 import Control.Monad(unless)
 import Control.Monad.Chronicle(MonadChronicle(..))
 import Data.Bifunctor(bimap)
+import Data.Foldable(foldMap')
 import Data.Functor((<&>))
 import Data.Map.Strict(Map)
 import Data.Map.Strict qualified as M
+import Data.Maybe(fromMaybe)
 import Data.Set(Set)
 import Data.Set qualified as S
 import Data.Text(Text)
@@ -14,7 +16,7 @@ import Data.Text qualified as T
 import Language.OpLang.Syntax
 
 calledOps :: [Op] -> Set Id
-calledOps = foldMap \case
+calledOps = foldMap' \case
   Call' op -> S.singleton op
   Loop' ops -> calledOps ops
   _ -> S.empty
@@ -35,7 +37,7 @@ undefinedCalls Program{..} =
 allUsedOps :: Map Id [Op] -> Set Id -> [Op] -> Set Id
 allUsedOps defs seen ops
   | S.null used = seen
-  | otherwise = foldMap (allUsedOps defs (seen <> used) . (defs M.!)) used
+  | otherwise = foldMap' ((allUsedOps defs (seen <> used)) . fromMaybe [] . (defs M.!?)) used
   where
     used = calledOps ops S.\\ seen
 
