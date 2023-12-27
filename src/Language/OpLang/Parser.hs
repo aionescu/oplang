@@ -29,8 +29,8 @@ symbol = L.symbol ws
 reserved :: Text
 reserved = "+-<>,.;:[]{}"
 
-intrinsic :: Parser Op
-intrinsic =
+builtIn :: Parser Op
+builtIn =
   choice
   [ symbol "+" $> Incr
   , symbol "-" $> Decr
@@ -40,7 +40,7 @@ intrinsic =
   , symbol "." $> Write'
   , symbol ";" $> Pop'
   , symbol ":" $> Push'
-  ] <?> "intrinsic operator"
+  ] <?> "built-in operator"
 
 block :: Text -> Text -> Parser [Op]
 block b e = between (symbol b) (symbol e) $ many op
@@ -55,7 +55,7 @@ op :: Parser Op
 op =
   choice
   [ loop
-  , intrinsic
+  , builtIn
   , Call' <$> custom
   ] <?> "operator"
 

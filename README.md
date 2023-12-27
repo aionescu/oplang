@@ -36,21 +36,21 @@ To build the project, use `cabal build`.
 
 To run the project locally (without installing), use `cabal run . -- <args>`.
 
-## Language Features
+## Language features
 
 OpLang is a strict superset of Brainfuck.
 
 Its main improvement is the addition of user-defined operators, which are analogous to user-defined functions in languages like C or Python.
 
-The "memory tape" in OpLang is specific to each operator invocation (akin to the stack space allocated for functions in C), and there is a separate "stack" which persists across operator invocations.
+The "memory tape" in OpLang is specific to each operator invocation (akin to the stack frames of functions in C), and there is a separate "stack" which persists across operator invocations.
 
 Each cell in the tape(s) and stack is 1 byte, and overflow/underflow is allowed.
 
-The default size of the stack is 4KB, and the default size for each memory tape is 64KB. These can be modified via the command-line.
+The default sizes of the stack and of memory tapes is 4KB. These defaults can be individually modified via command-line arguments.
 
 ### Syntax
 
-OpLang has 10 "intrinsic" operators, 8 of which are the Brainfuck operators, with the same semantics:
+OpLang has 10 built-in operators, 8 of which are the Brainfuck operators, with the same semantics:
 
 * `+`: Increment the current cell
 * `-`: Decrement the current cell
@@ -79,13 +79,13 @@ a { ; +++ : }
 ,: a ;.
 ```
 
-For more example programs, see the [examples](examples) folder.
+For more example programs, see the [examples](examples/) directory.
 
-## Compiler Architecture
+## Compiler architecture
 
 The compiler works by translating the input OpLang source into C, and then compiling that using the system's C compiler. To use a different C compiler, set the `CC` environment variable.
 
-The compiler uses an intermediate representation (which can be shown with the `--dump-ir` option) on which it performs a number of optimizations, generating C code that is much smaller and faster than a direct translation would be.
+The compiler uses an intermediate representation (which can be shown with the `--dump-ir` option) on which it performs a number of optimizations, generating C code that is much smaller and faster than a direct translation would yield.
 
 ## License
 
