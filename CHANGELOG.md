@@ -1,4 +1,10 @@
-<!-- markdownlint-disable first-line-h1   -->
+<!-- markdownlint-disable first-line-h1 -->
+
+## v0.4.0.1 \[2023-12-28\]
+
+* Improve error messages, warnings, and `--help` text
+* Fix warnings not being shown if there were also compilation errors
+* Update dependencies to allow compiling with GHC 9.8
 
 ## v0.4.0.0 \[2023-05-06\]
 
