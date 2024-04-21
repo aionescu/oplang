@@ -32,6 +32,8 @@ executable oplang
     BlockArguments
     DerivingStrategies
     LambdaCase
+    LexicalNegation
+    NegativeLiterals
     NoFieldSelectors
     OverloadedRecordDot
     OverloadedStrings

@@ -59,10 +59,10 @@ op =
   , Call' <$> custom
   ] <?> "operator"
 
-def :: Parser (Id, [Op])
+def :: Parser (Name, [Op])
 def = (,) <$> custom <*> block "{" "}" <?> "definition"
 
-defs :: Parser (Map Id [Op])
+defs :: Parser (Map Name [Op])
 defs = many (try def) >>= toMap
   where
     toMap ds

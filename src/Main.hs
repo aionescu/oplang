@@ -53,7 +53,7 @@ runCompiler opts code = do
 
   ast' <- validate opts.noWarn ast
 
-  let ir = optimize ast'
+  let ir = optimize opts.tapeSize ast'
   when opts.dumpIR do
     lift $ putStrLn $ "IR:\n" <> show ir <> "\n"
 

@@ -4,7 +4,7 @@ module Language.OpLang.Syntax where
 import Data.Int(Int8)
 import Data.Map.Strict(Map)
 
-type Id = Char
+type Name = Char
 type Val = Int8
 type Offset = Int
 
@@ -19,26 +19,26 @@ data Op
   | Pop'
   | Push'
   | Loop' [Op]
-  | Call' Id
+  | Call' Name
   deriving stock Show
 
 -- Internal IR, used for optimizations and codegen
 data Instr
-  = Add Val Offset
-  | Set Val Offset
+  = Add Offset Val
+  | Set Offset Val
   | Read Offset
   | Write Offset
   | Pop Offset
   | Push Offset
   | Move Offset
   | Loop [Instr]
-  | Call Id
-  | AddCell Val Offset Offset
+  | Call Name
+  | AddMul Offset Offset Val
   deriving stock Show
 
 data Program op
   = Program
-  { opDefs :: Map Id [op]
+  { opDefs :: Map Name [op]
   , topLevel :: [op]
   }
   deriving stock Show

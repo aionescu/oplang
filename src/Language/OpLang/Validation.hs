@@ -15,7 +15,7 @@ import Data.Text qualified as T
 
 import Language.OpLang.Syntax
 
-calledOps :: [Op] -> Set Id
+calledOps :: [Op] -> Set Name
 calledOps = foldMap' \case
   Call' op -> S.singleton op
   Loop' ops -> calledOps ops
@@ -34,7 +34,7 @@ undefinedCalls Program{..} =
     toMsgs (name, ops) = S.toList ops <&> \op ->
       "Error: In " <> fmt name <> ": Call to undefined operator " <> T.pack (show op) <> "."
 
-allUsedOps :: Map Id [Op] -> Set Id -> [Op] -> Set Id
+allUsedOps :: Map Name [Op] -> Set Name -> [Op] -> Set Name
 allUsedOps defs seen ops
   | S.null used = seen
   | otherwise = foldMap' ((allUsedOps defs (seen <> used)) . fromMaybe [] . (defs M.!?)) used
