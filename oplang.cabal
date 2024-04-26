@@ -38,6 +38,7 @@ executable oplang
     OverloadedRecordDot
     OverloadedStrings
     RecordWildCards
+    ViewPatterns
 
   other-extensions:
     StrictData

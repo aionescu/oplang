@@ -52,8 +52,10 @@ codegenOp = \case
   Set offset val -> tape offset <> "=" <> fromDec val <> ";"
   Pop offset -> tape offset <> "=*(--s);"
   Push offset -> "*(s++)=" <> tape offset <> ";"
+  PushKnown val -> "*(s++)=" <> fromDec val <> ";"
   Read offset -> tape offset <> "=getchar();"
   Write offset -> "putchar(" <> tape offset <> ");"
+  WriteKnown val -> "putchar(" <> fromDec val <> ");"
   Move offset -> "t" <> plusEq offset <> fromDec (abs offset) <> ";"
   AddMul offset initialOffset val -> addMul offset initialOffset val
   Loop ops -> "while(*t){" <> codegenOps ops <> "}"

@@ -28,8 +28,10 @@ data Instr
   | Set Offset Val
   | Read Offset
   | Write Offset
+  | WriteKnown Val
   | Pop Offset
   | Push Offset
+  | PushKnown Val
   | Move Offset
   | Loop [Instr]
   | Call Name

@@ -22,6 +22,11 @@ getVal (UnknownPlus val) = val
 getVal (Known val) = val
 getVal (Known' val) = val
 
+getKnownVal :: Cell -> Maybe Val
+getKnownVal UnknownPlus{} = Nothing
+getKnownVal (Known val) = Just val
+getKnownVal (Known' val) = Just val
+
 -- 'isKnown' and 'getVal' could be made into lenses, which would make this definition redundant,
 -- but adding a dependency on 'lens' just for this would be overkill.
 mapVal :: (Val -> Val) -> Cell -> Cell
@@ -87,8 +92,15 @@ pEval offset tape acc (op : ops) =
     MoveL -> pEval (offset - 1) tape acc ops
     MoveR -> pEval (offset + 1) tape acc ops
 
-    Write' -> pEval offset (I.delete offset tape) (Write offset : commitCell offset (I.findWithDefault mempty offset tape) acc) ops
-    Push' -> pEval offset (I.delete offset tape) (Push offset : commitCell offset (I.findWithDefault mempty offset tape) acc) ops
+    Write' ->
+      case I.findWithDefault mempty offset tape of
+        (getKnownVal -> Just val) -> pEval offset tape (WriteKnown val : acc) ops
+        cell -> pEval offset (I.delete offset tape) (Write offset : commitCell offset cell acc) ops
+
+    Push' ->
+      case I.findWithDefault mempty offset tape of
+        (getKnownVal -> Just val) -> pEval offset tape (PushKnown val : acc) ops
+        cell -> pEval offset (I.delete offset tape) (Push offset : commitCell offset cell acc) ops
 
     Call' c -> pEval offset tape (Call c : acc) ops
 
@@ -100,19 +112,16 @@ pEval offset tape acc (op : ops) =
         cell ->
           case pEval 0 I.empty [] l of
             (0, tape', []) | Just (UnknownPlus v) <- tape' I.!? 0, abs v == 1, not $ any isKnown tape' ->
-              let
-                val = getVal cell
-                newTape = I.mapKeys (offset +) tape'
-              in
-                case isKnown cell of
-                  True -> pEval offset (I.insert offset (Known' 0) $ I.unionWith (<>) (mapVal ((val * -v) *) <$> newTape) tape) acc ops
-                  False ->
-                    let
-                      modified = I.intersection tape newTape
-                      addMuls = getVal <$> I.delete offset newTape
-                      remaining = tape I.\\ modified
-                    in
-                      pEval offset (I.insert offset (Known' 0) remaining) (commitAddMuls offset v addMuls (commitCells modified acc)) ops
+              let newTape = I.mapKeys (offset +) tape'
+              in case getKnownVal cell of
+                Just val -> pEval offset (I.insert offset (Known' 0) $ I.unionWith (<>) (mapVal ((val * -v) *) <$> newTape) tape) acc ops
+                Nothing ->
+                  let
+                    modified = I.intersection tape newTape
+                    addMuls = getVal <$> I.delete offset newTape
+                    remaining = tape I.\\ modified
+                  in
+                    pEval offset (I.insert offset (Known' 0) remaining) (commitAddMuls offset v addMuls (commitCells modified acc)) ops
 
             (offset', tape', acc') ->
               let l' = Loop $ reverse $ commitMove offset' $ commitCells tape' acc'
