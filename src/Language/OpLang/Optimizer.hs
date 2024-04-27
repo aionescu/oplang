@@ -9,8 +9,7 @@ import Language.OpLang.Syntax
 -- Models partial information about a memory cell, used during partial evaluation.
 data Cell
   = UnknownPlus Val -- Unknown starting value + a known constant.
-  | Known Val -- Fully-known constant value.
-  | Known' Val -- Same as Known, but ensure it always gets committed.
+  | Known Bool Val -- Fully-known constant value. The 'Bool' tracks whether it should be committed unconditionally.
   deriving stock Eq
 
 isKnown :: Cell -> Bool
@@ -19,28 +18,19 @@ isKnown _ = True
 
 getVal :: Cell -> Val
 getVal (UnknownPlus val) = val
-getVal (Known val) = val
-getVal (Known' val) = val
-
-getKnownVal :: Cell -> Maybe Val
-getKnownVal UnknownPlus{} = Nothing
-getKnownVal (Known val) = Just val
-getKnownVal (Known' val) = Just val
+getVal (Known _ val) = val
 
 -- 'isKnown' and 'getVal' could be made into lenses, which would make this definition redundant,
 -- but adding a dependency on 'lens' just for this would be overkill.
 mapVal :: (Val -> Val) -> Cell -> Cell
 mapVal f (UnknownPlus val) = UnknownPlus $ f val
-mapVal f (Known val) = Known $ f val
-mapVal f (Known' val) = Known' $ f val
+mapVal f (Known c val) = Known c $ f val
 
 instance Semigroup Cell where
   (<>) :: Cell -> Cell -> Cell
   UnknownPlus a <> UnknownPlus b = UnknownPlus (a + b)
-  UnknownPlus a <> Known b = Known (a + b)
-  UnknownPlus a <> Known' b = Known' (a + b)
-  Known a <> _ = Known a
-  Known' a <> _ = Known' a
+  UnknownPlus a <> Known c b = Known c (a + b)
+  Known c a <> _ = Known c a
 
 instance Monoid Cell where
   mempty :: Cell
@@ -55,11 +45,10 @@ commitCell :: Offset -> Cell -> [Instr] -> [Instr]
 commitCell offset cell acc =
   case cell of
     UnknownPlus 0 -> acc
-    Known 0 -> acc
-
     UnknownPlus val -> Add offset val : acc
-    Known val -> Set offset val : acc
-    Known' val -> Set offset val : acc
+
+    Known False 0 -> acc
+    Known _ val -> Set offset val : acc
 
 -- Commit a Move instruction.
 commitMove :: Offset -> [Instr] -> [Instr]
@@ -72,11 +61,11 @@ commitCells tape acc = I.foldrWithKey' commitCell acc tape
 
 -- Commit a set of AddMul instructions, resulting from a for-like loop.
 commitAddMuls :: Offset -> Val -> IntMap Val -> [Instr] -> [Instr]
-commitAddMuls offset loopVal vals acc = I.foldrWithKey' (commitAddMul offset loopVal) acc vals
+commitAddMuls offset diff vals acc = I.foldrWithKey' (commitAddMul offset diff) acc vals
   where
     commitAddMul :: Offset -> Val -> Offset -> Val -> [Instr] -> [Instr]
     commitAddMul _ _ _ 0 acc = acc
-    commitAddMul initialOffset loopVal offset val acc = AddMul offset initialOffset (val * -loopVal) : acc
+    commitAddMul initialOffset diff offset val acc = AddMul offset initialOffset (val * -diff) : acc
 
 -- Partially evaluate a program, producing an optimized sequence of instructions.
 pEval :: Offset -> Tape -> [Instr] -> [Op] -> (Offset, Tape, [Instr])
@@ -94,43 +83,41 @@ pEval offset tape acc (op : ops) =
 
     Write' ->
       case I.findWithDefault mempty offset tape of
-        (getKnownVal -> Just val) -> pEval offset tape (WriteKnown val : acc) ops
+        Known _ val -> pEval offset tape (WriteKnown val : acc) ops
         cell -> pEval offset (I.delete offset tape) (Write offset : commitCell offset cell acc) ops
 
     Push' ->
       case I.findWithDefault mempty offset tape of
-        (getKnownVal -> Just val) -> pEval offset tape (PushKnown val : acc) ops
+        Known _ val -> pEval offset tape (PushKnown val : acc) ops
         cell -> pEval offset (I.delete offset tape) (Push offset : commitCell offset cell acc) ops
 
     Call' c -> pEval offset tape (Call c : acc) ops
 
     Loop' l ->
       case I.findWithDefault mempty offset tape of
-        Known 0 -> pEval offset tape acc ops
-        Known' 0 -> pEval offset tape acc ops
+        Known _ 0 -> pEval offset tape acc ops
 
         cell ->
           case pEval 0 I.empty [] l of
-            (0, tape', []) | Just (UnknownPlus v) <- tape' I.!? 0, abs v == 1, not $ any isKnown tape' ->
-              let newTape = I.mapKeys (offset +) tape'
-              in case getKnownVal cell of
-                Just val -> pEval offset (I.insert offset (Known' 0) $ I.unionWith (<>) (mapVal ((val * -v) *) <$> newTape) tape) acc ops
-                Nothing ->
+            (0, I.mapKeys (offset +) -> tape', []) | Just (UnknownPlus diff) <- tape' I.!? offset, abs diff == 1, not $ any isKnown tape' ->
+              case cell of
+                Known _ val -> pEval offset (I.insert offset (Known True 0) $ I.unionWith (<>) (mapVal ((val * -diff) *) <$> tape') tape) acc ops
+                _ ->
                   let
-                    modified = I.intersection tape newTape
-                    addMuls = getVal <$> I.delete offset newTape
+                    modified = I.intersection tape tape'
+                    addMuls = getVal <$> I.delete offset tape'
                     remaining = tape I.\\ modified
                   in
-                    pEval offset (I.insert offset (Known' 0) remaining) (commitAddMuls offset v addMuls (commitCells modified acc)) ops
+                    pEval offset (I.insert offset (Known True 0) remaining) (commitAddMuls offset diff addMuls $ commitCells modified acc) ops
 
             (offset', tape', acc') ->
               let l' = Loop $ reverse $ commitMove offset' $ commitCells tape' acc'
-              in pEval 0 (I.singleton 0 (Known 0)) (l' : commitMove offset (commitCells tape acc)) ops
+              in pEval 0 (I.singleton 0 $ Known False 0) (l' : commitMove offset (commitCells tape acc)) ops
 
 optimizeOps :: Word -> [Op] -> [Instr]
 optimizeOps tapeSize ops = reverse acc
   where
-    initialTape = I.fromSet (const $ Known 0) $ S.fromRange (0, fromEnum tapeSize - 1)
+    initialTape = I.fromSet (const $ Known False 0) $ S.fromRange (0, fromEnum tapeSize - 1)
     (_, _, acc) = pEval 0 initialTape [] ops
 
 optimize :: Word -> Program Op -> Program Instr

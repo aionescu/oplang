@@ -39,12 +39,9 @@ plusEq val
   | val < 0 = "-="
   | otherwise = "+="
 
-addMul :: Offset -> Offset -> Val -> CCode
-addMul _ _ 0 = ""
-addMul offset initialOffset val = tape offset <> plusEq val <> tape initialOffset <> times (abs val) <> ";"
-  where
-    times 1 = ""
-    times n = "*" <> fromDec n
+times :: Val -> CCode
+times 1 = ""
+times n = "*" <> fromDec n
 
 codegenOp :: Instr -> CCode
 codegenOp = \case
@@ -57,7 +54,7 @@ codegenOp = \case
   Write offset -> "putchar(" <> tape offset <> ");"
   WriteKnown val -> "putchar(" <> fromDec val <> ");"
   Move offset -> "t" <> plusEq offset <> fromDec (abs offset) <> ";"
-  AddMul offset initialOffset val -> addMul offset initialOffset val
+  AddMul offset initialOffset val -> tape offset <> plusEq val <> tape initialOffset <> times (abs val) <> ";"
   Loop ops -> "while(*t){" <> codegenOps ops <> "}"
   Call name -> cName name <> "();"
 
