@@ -1,5 +1,12 @@
 <!-- markdownlint-disable first-line-h1 -->
 
+## v0.5.0.0 \[2024-04-28\]
+
+* Use `putchar`/`getchar` instead of `printf`/`scanf` for I/O
+* Optimizer improvements
+  * Can now optimize more complex loops into constant-time arithmetic
+  * Performs better constant propagation
+
 ## v0.4.0.1 \[2023-12-28\]
 
 * Improve error messages, warnings, and `--help` text
